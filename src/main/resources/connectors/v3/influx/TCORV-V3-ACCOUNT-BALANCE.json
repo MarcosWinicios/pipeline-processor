@@ -1,0 +1,78 @@
+{
+    "version": "1.0.0",
+    "name": "TCORV-V3-ACCOUNT-BALANCE",
+    "type": "chore",
+    "level": "debug",
+    "steps": [
+        {
+            "step": "1",
+            "description": "ContasGeral - consultaSaldoDisponivel",
+            "component": "connector-http",
+            "mode": "sync",
+            "type": "kafka",
+            "destination": "servcore-composer-connector-http-topic",
+            "operation": "topazcore-contacorrenteservice-consultarsaldo",
+            "config": {
+                "outputField": "outputTopazCoreAccountBalance",
+                "endpoint": "$V{TSMC_TBNK_SERVER}/topazinterpretedws/ContasGeral/v1/PLATFconsultaSaldoDisponivel",
+                "method": "GET",
+                "readTimeout": "20",
+                "headers": {
+                    "Content-Type": "application/json;charset=UTF-8",
+                    "Topaz-Transaction-ID": "$M{randomUUID()}",
+                    "Topaz-Company": "$F{influx.transactionData.sourceAccountData.contextHeader.company}",
+                    "Topaz-Branch": "$F{influx.transactionData.sourceAccountData.contextHeader.branch}",
+                    "Topaz-User": "$V{TSMC_TCOR_USER}",
+                    "Topaz-Channel": "$V{TSMC_TCOR_CHANNEL}",
+                    "Accept": "application/json"
+                },
+                "queryParameters": {
+                    "empresa": "$F{influx.transactionData.sourceAccountData.contextAccount.company}",
+                    "tipoConta": "$E{if(influx.transactionData.sourceAccountData.personType=='NATURAL_PERSON'){if(influx.transactionData.sourceAccountData.accountType=='CACC'){'CONTA_CORRENTE_PF';}else if(influx.transactionData.sourceAccountData.accountType=='SVGS'){'CONTA_POUPANCA_PF';}else if(influx.transactionData.sourceAccountData.accountType=='SLRY'){'CONTA_SALARIO';}}else if(influx.transactionData.sourceAccountData.personType=='LEGAL_PERSON'){if(influx.transactionData.sourceAccountData.accountType=='CACC'){'CONTA_CORRENTE_PJ';}else if(influx.transactionData.sourceAccountData.accountType=='SVGS'){'CONTA_POUPANCA_PJ';}else if(influx.transactionData.sourceAccountData.accountType=='SLRY'){'CONTA_SALARIO';}}}",
+                    "numeroConta": "$F{influx.transactionData.sourceAccountData.accountNumber}"
+                },
+                "jsTransform": "var response={};if(output&&output.message){var rsp={};rsp['messageDetail']=output.message;rsp['messageBusiness']=output.errorCode;response=JSON.stringify(rsp);}"
+            },
+            "sequence": {
+                "next": "step.2"
+            }
+        },
+        {
+            "step": "2",
+            "component": "decision",
+            "description": "Decision",
+            "sequence": {
+                "switch": [
+                    {
+                        "and": {
+                            "equal": {
+                                "$F{messageCode}": "200"
+                            }
+                        },
+                        "next": "step.3"
+                    },
+                    {
+                        "yet": {
+                            "next": "finish"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "step": "3",
+            "description": "Data Transform - API",
+            "component": "data-transform",
+            "mode": "sync",
+            "type": "kafka",
+            "destination": "servcore-composer-data-transform-topic",
+            "config": {
+                "outputTransform": "var response = null; var accountBalance = {}; accountBalance['availableAmount'] = Number(influx.outputTopazCoreAccountBalance.saldoDisponivel); accountBalance['blockedAmount'] = Number(influx.outputTopazCoreAccountBalance.saldoBloqueado); accountBalance['overdraftContractedLimit'] = Number(influx.outputTopazCoreAccountBalance.limiteTotalDisponivel); accountBalance['overdraftUsedLimit'] = Number(influx.outputTopazCoreAccountBalance.limiteChequeEspecial); accountBalance['unarrangedOverdraftAmount'] = Number(influx.outputTopazCoreAccountBalance.adUtilizado); accountBalance['paidAmount'] = Number(influx.outputTopazCoreAccountBalance.saldoRemunerado); if (influx.outputTopazCoreAccountBalance.saldosAniversario) { accountBalance['birthdayBalances'] = []; for (var i = 0; i < influx.outputTopazCoreAccountBalance.saldosAniversario.length; i++) { var obj = {}; obj['birthdayDay'] = influx.outputTopazCoreAccountBalance.saldosAniversario[i].diaAniversario; obj['amount'] = influx.outputTopazCoreAccountBalance.saldosAniversario[i].saldo; accountBalance.birthdayBalances.push(obj); } } response = JSON.stringify(accountBalance);",
+                "outputField": "outputAccountBalance"
+            },
+            "sequence": {
+                "next": "finish"
+            }
+        }
+    ]
+}

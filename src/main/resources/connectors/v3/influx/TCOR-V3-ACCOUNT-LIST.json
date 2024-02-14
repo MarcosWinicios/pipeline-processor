@@ -1,0 +1,138 @@
+{
+	"version": "1.0.0",
+	"name": "TCOR-V3-ACCOUNT-LIST",
+	"type": "chore",
+	"steps": [
+		{
+			"step": "1",
+			"description": "Contexto - consultarContextoInicial",
+			"component": "connector-http",
+			"mode": "sync",
+			"type": "kafka",
+			"destination": "servcore-composer-connector-http-topic",
+			"operation": "topazcore-contexto-consultarcontextoinicial",
+			"config": {
+				"outputField": "outputTopazCoreContextInitial",
+				"endpoint": "$V{TSMC_TCOR_SERVER}/topazinterpretedws/Contexto/v1/PLATFconsultarContextoInicial",
+				"method": "GET",
+				"readTimeout": "20",
+				"headers": {
+					"Content-Type": "application/json",
+					"Topaz-Transaction-ID": "$M{randomUUID()}",
+					"Topaz-User": "$V{TSMC_TCOR_USER}",
+					"Topaz-Channel": "$V{TSMC_TCOR_CHANNEL}",
+					"Accept": "application/json"
+				},
+				"jsTransform": "var response = {};if (output && output.message) {  var rsp = {};  rsp['messageDetail'] = output.message;  response = JSON.stringify(rsp);}"
+			},
+			"sequence": {
+				"next": "step.2"
+			}
+		},
+		{
+			"step": "2",
+			"component": "decision",
+			"description": "decision",
+			"sequence": {
+				"switch": [
+					{
+						"and": {
+							"equal": {
+								"$F{messageCode}": "200"
+							}
+						},
+						"next": "step.3"
+					},
+					{
+						"yet": {
+							"next": "finish"
+						}
+					}
+				]
+			}
+		},
+		{
+			"step": "3",
+			"description": "ContasGeral - ConsultarContasPorDocumento",
+			"component": "connector-http",
+			"mode": "sync",
+			"type": "kafka",
+			"destination": "servcore-composer-connector-http-topic",
+			"operation": "topazcore-contasgeral-consultarcontaspordocumento",
+			"config": {
+				"outputField": "outputTopazCoreAccounts",
+				"endpoint": "$V{TSMC_TBNK_SERVER}/topazinterpretedws/ContasGeral/v1/PLATFconsultarContasPorDocumento",
+				"method": "GET",
+				"headers": {
+					"Content-Type": "application/json;charset=UTF-8",
+					"Topaz-Transaction-ID": "$M{randomUUID()}",
+					"Topaz-Company": "$F{influx.outputTopazCoreContextInitial.empresa}",
+					"Topaz-Branch": "$F{influx.outputTopazCoreContextInitial.sucursalEmpresa}",
+					"Topaz-User": "$V{TSMC_TCOR_USER}",
+					"Topaz-Channel": "$V{TSMC_TCOR_CHANNEL}",
+					"Accept": "application/json"
+				},
+				"queryParameters": {
+					"tipoDocumento": "$F{influx.transactionData.sourceAccountData.documentType}",
+					"numeroDocumento": "$F{influx.transactionData.sourceAccountData.documentNumber}"
+				},
+				"jsTransform": "var response={};if(output&&output.message){var rsp={};rsp['messageDetail']=output.message;rsp['messageBusiness']=output.errorCode;response=JSON.stringify(rsp);}"
+			},
+			"sequence": {
+				"next": "step.4"
+			}
+		},
+		{
+			"step": "4",
+			"component": "decision",
+			"description": "Decision",
+			"sequence": {
+				"switch": [
+					{
+						"and": {
+							"equal": {
+								"$F{messageCode}": "200",
+								"true": "$E{influx.outputTopazCoreAccounts.length > 0}"
+							}
+						},
+						"next": "step.5"
+					},
+					{
+						"and": {
+							"equal": {
+								"true": "$E{influx.outputTopazCoreAccounts.length == 0}"
+							}
+						},
+						"context": {
+							"add": {
+								"messageCode": "404",
+								"messageErrorCode": "404"
+							}
+						},
+						"next": "finish"
+					},
+					{
+						"yet": {
+							"next": "finish"
+						}
+					}
+				]
+			}
+		},
+		{
+			"step": "5",
+			"description": "Data Transform - API",
+			"component": "data-transform",
+			"mode": "sync",
+			"type": "kafka",
+			"destination": "servcore-composer-data-transform-topic",
+			"config": {
+				"outputTransform": "var response = null; var message = {}; var accountDefault = false; var accounts = {}; accounts['accountId'] = ''; accounts['accountIds'] = {}; function addZeros(number, size) { var numberString = String(number); var counter = numberString.length; while (counter < size) { numberString = '0' + numberString; counter++; } return numberString; } function addAccountInList(topazCoreAccountType) { if ((topazCoreAccountType != 'CONTA_CORRENTE_PF') && (topazCoreAccountType != 'CONTA_CORRENTE_PJ') && (topazCoreAccountType != 'CONTA_POUPANCA_PF') && (topazCoreAccountType != 'CONTA_POUPANCA_PJ') && (topazCoreAccountType != 'CONTA_SALARIO')) { return false; } return true; } function getStatusBlock(statusBlock) { if (statusBlock == 'Sin Bloqueo' || statusBlock == 'ACTIVA') { statusBlock = 'UNBLOCKED'; } else if (statusBlock == 'Bloqueo' || statusBlock == 'BLOQUEADA') { statusBlock = 'BLOCKED'; } else { statusBlock = ''; } return statusBlock; } function getStatus(status) { if (status == 'VIGENTE' || status == 'ACTIVA') { status = 'ACTIVE'; } else if (status == 'CERRADA' || status == 'ENCERRADA') { status = 'INACTIVE'; } else if (status == 'BLOQUEADA') { status = 'BLOCKED'; } else { status = ''; } return status; } for (var i = 0; i < influx.outputTopazCoreAccounts.length; i++) { if (addAccountInList(influx.outputTopazCoreAccounts[i].tipoConta)) { var accountId = {}; var account = {}; account['branchCode'] = addZeros(influx.outputTopazCoreAccounts[i].agenciaSP.toString(), 4); if (influx.outputTopazCoreAccounts[i].tipoConta == 'CONTA_CORRENTE_PF') { account['accountType'] = 'CACC'; account['personType'] = 'NATURAL_PERSON'; } else if (influx.outputTopazCoreAccounts[i].tipoConta == 'CONTA_CORRENTE_PJ') { account['accountType'] = 'CACC'; account['personType'] = 'LEGAL_PERSON'; } else if (influx.outputTopazCoreAccounts[i].tipoConta == 'CONTA_POUPANCA_PF') { account['accountType'] = 'SVGS'; account['personType'] = 'NATURAL_PERSON'; } else if (influx.outputTopazCoreAccounts[i].tipoConta == 'CONTA_POUPANCA_PJ') { account['accountType'] = 'SVGS'; account['personType'] = 'LEGAL_PERSON'; } else if (influx.outputTopazCoreAccounts[i].tipoConta == 'CONTA_SALARIO') { account['accountType'] = 'SLRY'; account['personType'] = 'NATURAL_PERSON'; } var numeroConta = influx.outputTopazCoreAccounts[i].numeroConta.toString(); account['accountNumber'] = numeroConta; account['checkDigit'] = String(numeroConta[numeroConta.length - 1]); account['companyCode'] = influx.outputTopazCoreAccounts[i].empresa.toString(); account['openingDateTime'] = influx.outputTopazCoreAccounts[i].fechaAbertura.toString(); account['status'] = getStatus(influx.outputTopazCoreAccounts[i].status.toString()); account['statusBlock'] = ''; account['statusCredit'] = 'UNBLOCKED'; account['statusDebit'] = 'UNBLOCKED'; if (influx.outputTopazCoreAccounts[i].titularidad == 'TITULAR') { account['holderType'] = 'HOLDER'; } else if (influx.outputTopazCoreAccounts[i].titularidad == 'COTITULAR') { account['holderType'] = 'COHOLDER'; } else { account['holderType'] = ''; } account['clientCode'] = influx.outputTopazCoreAccounts[i].codigoCliente.toString(); if (influx.outputTopazCoreAccounts[i].nome) { account['personName'] = influx.outputTopazCoreAccounts[i].nome.toString(); } else if (influx.outputTopazCoreAccounts[i].razonSocial) { account['personName'] = influx.outputTopazCoreAccounts[i].razonSocial.toString(); } else { account['personName'] = 'Nome'; } account['documentType'] = influx.outputTopazCoreAccounts[i].tipoDocumento.toString(); account['documentNumber'] = influx.outputTopazCoreAccounts[i].numeroDocumento.toString(); var contextHeader = {}; contextHeader['company'] = influx.outputTopazCoreContextInitial.empresa.toString(); contextHeader['branch'] = influx.outputTopazCoreContextInitial.sucursalEmpresa.toString(); account['contextHeader'] = contextHeader; accountHash = hash.md5(addZeros(influx.outputTopazCoreAccounts[i].agenciaSP.toString(), 4) + '.' + influx.outputTopazCoreAccounts[i].numeroConta.toString()); if (accountDefault == false) { accounts['accountId'] = accountHash; accountDefault = true; } account['accountId'] = accountHash; accounts.accountIds[accountHash] = account; } } message['accounts'] = accounts; response = JSON.stringify(message);",
+				"outputField": "outputAccounts"
+			},
+			"sequence": {
+				"next": "finish"
+			}
+		}
+	]
+}
