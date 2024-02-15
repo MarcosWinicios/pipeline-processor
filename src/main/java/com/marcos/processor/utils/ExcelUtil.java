@@ -15,13 +15,46 @@ import com.marcos.processor.model.ConnectorList;
 
 @Component
 public class ExcelUtil {
+	private static final String[] HEADERS_GROUP_BY_CONNECTORS_NAME = {"CONNECTOR", "METHOD", "ENDPOINT" };
+	private static final String[] HEADERS_WITHOUT_CONNECTORS_NAME = {"METHOD", "ENDPOINT" };
 
-	public static void connectorListToExcel(ConnectorList connectorList, String pathDirectory, String filename) {
+	/**
+	 * 
+	 * @param connectorList
+	 * @param pathDirectory
+	 * @param groupByConnectorsName
+	 * @param filename
+	 */
+	public static void connectorListToExcel(ConnectorList connectorList, String pathDirectory, boolean groupByConnectorsName, String filename) {
+		
+		String[] headers = null;
+		String[][] data = null;
+		
+		System.out.println("GROUP: " + groupByConnectorsName);
+		
+		if(groupByConnectorsName) {
+			headers = HEADERS_GROUP_BY_CONNECTORS_NAME;
+			data = generateDateWithGroupingByConnectorName(connectorList);
+		}else {
+			headers = HEADERS_WITHOUT_CONNECTORS_NAME;
+			data = generateDateWithoutGroupingByConnectorName(connectorList);
+		}
+		
+		
+		// Chamada do método para criar e gravar o arquivo Excel
+		try {
+			ExcelUtil.generateExcelFile(headers, data, pathDirectory, filename);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-		String[] headers = { "CONNECTOR", "METHOD", "ENDPOINT" };
+	}
+	
+	private static String[][] generateDateWithGroupingByConnectorName(ConnectorList connectorList){
+		
 
 		int lines = connectorList.getConnectors().size();
-		int columns = headers.length;
+		int columns = HEADERS_GROUP_BY_CONNECTORS_NAME.length;
 
 		String[][] data = new String[lines][columns];
 
@@ -56,14 +89,49 @@ public class ExcelUtil {
 
 		printData(data);
 
-		// Chamada do método para criar e gravar o arquivo Excel
-		try {
-			ExcelUtil.generateExcelFile(headers, data, pathDirectory, filename);
-		} catch (IOException e) {
-			e.printStackTrace();
+		
+		
+		return data;
+	}
+	
+private static String[][] generateDateWithoutGroupingByConnectorName(ConnectorList connectorList){
+		
+
+		int lines = connectorList.getConnectors().size();
+		int columns = HEADERS_WITHOUT_CONNECTORS_NAME.length;
+
+		String[][] data = new String[lines][columns];
+
+		for (int i = 0; i < data.length; i++) {
+			var httpMethod = "";
+			var endpoint = "";
+
+			var size = connectorList.getConnectors().get(i).getRequestList().size();
+
+			if (size > 0) {
+				int auxCount = i;
+				for (int j = 0; j < size; j++) {
+
+					auxCount = auxCount + j;
+					httpMethod = connectorList.getConnectors().get(i).getRequestList().get(j).getHttpMethod();
+					endpoint = connectorList.getConnectors().get(i).getRequestList().get(j).getEndpoint();
+					
+					data[auxCount][0] = httpMethod;
+					data[auxCount][1] = endpoint;
+				}
+
+				i = auxCount;
+			}
+
+			data[i][0] = httpMethod;
+			data[i][1] = endpoint;
 		}
 
+		printData(data);
+		
+		return data;
 	}
+ 
 
 	public static void generateExcelFile(String[] headers, String[][] data, String pathDirectory, String fileName)
 			throws IOException {

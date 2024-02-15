@@ -67,8 +67,13 @@ public class ConnectorService {
 		List<JsonObject> pipelineList = JsonUtil.getJsonPipelinesList(inputData.getOriginDirectoryPathFiles());
 
 		List<Connector> connectorList = new ArrayList<>();
-
-		connectorList = this.pipeListToConnectorList(pipelineList, inputData.isAddEmptyConnectors());
+		
+		boolean addEmptyConnectorsInList = false;
+		
+		if(inputData.isGroupByConnectorName()) {
+			addEmptyConnectorsInList = inputData.isAddEmptyConnectors();
+		}
+		connectorList = this.pipeListToConnectorList(pipelineList, addEmptyConnectorsInList);
 
 		String connectorsName = PipelineUtil.getConnectorsName(inputData.getOriginDirectoryPathFiles());
 		
