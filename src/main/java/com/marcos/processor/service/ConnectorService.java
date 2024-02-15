@@ -76,9 +76,14 @@ public class ConnectorService {
 
 		ConnectorList connectors = new ConnectorList(connectorsName, ordenedList);
 
-		this.generateFiles(connectors, inputData.isGenerateJsonFile(), inputData.isGenerateCsvFile(),
-				inputData.getJsonTargetPath(), inputData.getCsvTargetPath(),
-				inputData.isGenerateCsvWithConnectorsName(), inputData.getFileName());
+		this.generateFiles(
+				connectors, 
+				inputData.isGenerateJsonFile(), 
+				inputData.isGenerateCsvFile(),
+				inputData.isGenerateExcelFile(),
+				inputData.getOutputPathFiles(),
+				inputData.isGroupByConnectorName(), 
+				inputData.getFileName());
 
 		return connectors;
 	}
@@ -136,25 +141,33 @@ public class ConnectorService {
 
 		return responseList;
 	}
-
-	private void generateFiles(ConnectorList connectorList, boolean generateJsonFile, boolean generateCsvFile,
-			String jsonPathTargetFile, String csvPathTargetFile, boolean generateCsvWithConnectorsName,
+	
+	/**
+	 * 
+	 * @param connectorList
+	 * @param generateJsonFile
+	 * @param generateCsvFile
+	 * @param generateExcelFile
+	 * @param outputPathFile
+	 * @param groupByconnectorsName
+	 * @param filename
+	 */
+	private void generateFiles(ConnectorList connectorList, boolean generateJsonFile, boolean generateCsvFile, boolean generateExcelFile,
+			String outputPathFile, boolean groupByconnectorsName,
 			String filename) {
 
-		GenerateConnectorEvent event = new GenerateConnectorEvent(connectorList, generateJsonFile, generateCsvFile);
-
-		if (jsonPathTargetFile != null) {
-			event.setJsonTargetPath(jsonPathTargetFile);
+		GenerateConnectorEvent event = new GenerateConnectorEvent(
+				connectorList, 
+				generateJsonFile, 
+				generateCsvFile, 
+				generateExcelFile);
+		
+		event.setGroupByConnectorsName(groupByconnectorsName);
+		
+		if (outputPathFile != null) {
+			event.setOutputPathFile(outputPathFile);
 		}
-
-		if (csvPathTargetFile != null) {
-			event.setCsvTargetPath(csvPathTargetFile);
-		}
-
-		if (generateCsvFile) {
-			event.setGenerateCsvWithConnectorsName(generateCsvWithConnectorsName);
-		}
-
+		
 		if (filename != null) {
 			event.setFileName(filename);
 		}
@@ -162,6 +175,7 @@ public class ConnectorService {
 		GenerateConnectorListener listener = new GenerateConnectorListener();
 		listener.generateConnectorJsonFileListener(event);
 		listener.generateConnectorCsvFileListener(event);
+		listener.generateConnectorExcelFileListener(event);
 
 //		eventPublisher.publishEvent(event);
 	}
