@@ -8,18 +8,13 @@ import lombok.NoArgsConstructor;
 public class GenerateConnectorListInputDTO {
 
 	private String originDirectoryPathFiles;
-	private boolean groupByConnectorName;
+	private boolean groupByConnectorName = true;
 	private boolean generateJsonFile;
 	private boolean generateCsvFile;
 	private boolean generateExcelFile;
 	private String fileName;
 	private String outputPathFiles;
 	private boolean addEmptyConnectors = true;
-
-
-
-	
-	
 	
 	
 /**

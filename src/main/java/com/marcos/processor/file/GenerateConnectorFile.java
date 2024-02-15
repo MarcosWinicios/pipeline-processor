@@ -130,6 +130,6 @@ public class GenerateConnectorFile {
 	 * @param fileName
 	 */
 	public void generateExcelFile(ConnectorList connectorList, String targetPathDirectory, boolean generateConnectorNameColumn, String fileName) {
-		ExcelUtil.connectorListToExcel(connectorList, targetPathDirectory, fileName);
+		ExcelUtil.connectorListToExcel(connectorList, targetPathDirectory, generateConnectorNameColumn, fileName);
 	}
 }
