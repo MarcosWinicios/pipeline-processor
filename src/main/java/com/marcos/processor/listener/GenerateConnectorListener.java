@@ -105,7 +105,7 @@ public class GenerateConnectorListener {
 				
 				//path padrão 
 				if(event.getOutputPathFile() == null && event.getFileName() != null) {
-					System.out.println("aqui");
+					
 					generatorConnectorFile.generateExcelFile(
 							event.getConnectorList(), 
 							event.isGroupByConnectorsName(),

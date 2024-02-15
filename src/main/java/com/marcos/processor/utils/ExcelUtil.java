@@ -24,13 +24,13 @@ public class ExcelUtil {
 	 * @param pathDirectory
 	 * @param groupByConnectorsName
 	 * @param filename
+	 * @throws IOException 
 	 */
-	public static void connectorListToExcel(ConnectorList connectorList, String pathDirectory, boolean groupByConnectorsName, String filename) {
+	public static String connectorListToExcel(ConnectorList connectorList, String pathDirectory, boolean groupByConnectorsName, String filename)  {
 		
 		String[] headers = null;
 		String[][] data = null;
-		
-		System.out.println("GROUP: " + groupByConnectorsName);
+
 		
 		if(groupByConnectorsName) {
 			headers = HEADERS_GROUP_BY_CONNECTORS_NAME;
@@ -43,9 +43,11 @@ public class ExcelUtil {
 		
 		// Chamada do método para criar e gravar o arquivo Excel
 		try {
-			ExcelUtil.generateExcelFile(headers, data, pathDirectory, filename);
-		} catch (IOException e) {
-			e.printStackTrace();
+			
+			return ExcelUtil.generateExcelFile(headers, data, pathDirectory, filename);
+			
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage());
 		}
 
 	}
@@ -127,13 +129,13 @@ private static String[][] generateDateWithoutGroupingByConnectorName(ConnectorLi
 			data[i][1] = endpoint;
 		}
 
-		printData(data);
+//		printData(data);
 		
 		return data;
 	}
  
 
-	public static void generateExcelFile(String[] headers, String[][] data, String pathDirectory, String fileName)
+	public static String generateExcelFile(String[] headers, String[][] data, String pathDirectory, String fileName)
 			throws IOException {
 		// Criando um diretório se não existir
 		File directory = new File(pathDirectory);
@@ -163,7 +165,7 @@ private static String[][] generateDateWithoutGroupingByConnectorName(ConnectorLi
 				row.createCell(j).setCellValue(data[i][j]);
 			}
 		}
-
+		
 		// Salvando o arquivo Excel
 		File file = new File(directory, fileName + ".xlsx");
 		try (FileOutputStream fileOut = new FileOutputStream(file)) {
@@ -173,6 +175,7 @@ private static String[][] generateDateWithoutGroupingByConnectorName(ConnectorLi
 
 		// Fechando o workbook
 		workbook.close();
+		return file.getAbsolutePath();
 	}
 
 	public static void printData(String[][] data) {

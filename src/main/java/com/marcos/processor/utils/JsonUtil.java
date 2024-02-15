@@ -49,7 +49,7 @@ public class JsonUtil {
 		return fileToJson(path);
 	}
 
-	public static void jsonToFile(Object obj, String path, String fileName) {
+	public static String jsonToFile(Object obj, String path, String fileName) {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String fileFullName = path + fileName;
 
@@ -70,9 +70,13 @@ public class JsonUtil {
 				// Converter o objeto Java em JSON e escrever no arquivo
 				gson.toJson(obj, writer);
 			}
-
-		} catch (IOException e) {
+			
+			System.out.println("Arquivo JSON gerado com sucesso em: " + file.getAbsolutePath());
+			
+			return file.getAbsolutePath();
+		} catch (Exception e) {
 			e.printStackTrace();
+			throw new RuntimeException(e.getMessage());
 		}
 	}
 
