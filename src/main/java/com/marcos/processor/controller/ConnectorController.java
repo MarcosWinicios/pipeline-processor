@@ -19,9 +19,14 @@ public class ConnectorController {
 	private ConnectorService service;
 	
 	@PostMapping
-	public ResponseEntity<ConnectorList> extractRequestsOfConnectors(@RequestBody GenerateConnectorListInputDTO inputData) {
+	public ResponseEntity<String> extractRequestsOfConnectors(@RequestBody GenerateConnectorListInputDTO inputData) {
 		
-		var response =  service.getConnectorList(inputData);
+		service.buildExportFiles(inputData);
+		
+		String response =  service.getPathSavedFiles();
+		
+		response = "Arquivos salvos em: " + response;
+		
 		return ResponseEntity.ok(response);
 		
 	}

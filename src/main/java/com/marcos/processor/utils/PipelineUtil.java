@@ -15,15 +15,18 @@ public class PipelineUtil {
 
 	private final static List<String> BASE_URL_VARIABLES = new ArrayList<String>(
 			Arrays.asList("$V{TSMC_TBNK_SERVER}", "$V{TSMC_TCOR_SERVER}", "$V{TSMC_MOCK_TBNK_SERVER}"));
-	
+
+	private final static List<String> PREFIX_CONNECTORS_NAME = new ArrayList<>(
+			Arrays.asList("TCOR-V2-", "TCOR-V3-", "TCORV-V3-", "TCOR-MXV1-"));
+
 	private final static String DEFAULT_LAST_DIRECTORY_NAME = "influx";
-	
+
 	@SuppressWarnings("unused")
-	public static JsonArray extractSteps(JsonObject pipelineJson) throws Exception {		
+	public static JsonArray extractSteps(JsonObject pipelineJson) throws Exception {
 		JsonArray steps = pipelineJson.get("steps").getAsJsonArray();
-		
+
 		return steps;
-		
+
 	}
 
 	public static List<RequestAPI> extractEndPointsOfConnectors(JsonArray steps) {
@@ -61,12 +64,12 @@ public class PipelineUtil {
 		return new RequestAPI(method, endpoint, description);
 
 	}
-	
+
 	public static String getConnectorsName(String path) {
 		Path pathObject = FileSystems.getDefault().getPath(path);
 
 		String penultimateDirectoryName = pathObject.getParent().getFileName().toString();
-		
+
 		String lastDirectoryName = pathObject.getFileName().toString();
 
 		if (lastDirectoryName.equals(DEFAULT_LAST_DIRECTORY_NAME)) {
@@ -74,6 +77,13 @@ public class PipelineUtil {
 		}
 		return lastDirectoryName;
 
+	}
+
+	public static String removePrefixOfConnectorName(String connectorName) {
+		for (String baseUrl : PREFIX_CONNECTORS_NAME) {
+			connectorName = connectorName.replace(baseUrl, "");
+		}
+		return connectorName;
 	}
 
 }

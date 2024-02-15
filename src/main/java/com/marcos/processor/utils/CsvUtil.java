@@ -24,7 +24,7 @@ public class CsvUtil {
 	 * @param generateWithConnectorName Define se adiciona ou não o nome da Pipeline
 	 *                                  em cada connector
 	 */
-	public static void connectorListToCsv(ConnectorList connectors, String directoryTargetPath, String fileName,
+	public static String connectorListToCsv(ConnectorList connectors, String directoryTargetPath, String fileName,
 			boolean generateWithConnectorName) {
 
 		List<String[]> data = new ArrayList<>();
@@ -35,7 +35,7 @@ public class CsvUtil {
 			data = generateConnectorCsvDataWithoutName(connectors);
 		}
 
-		generateCsvFile(data, directoryTargetPath, fileName);
+		return generateCsvFile(data, directoryTargetPath, fileName);
 
 	}
 
@@ -99,7 +99,7 @@ public class CsvUtil {
 	 * @param directoryPath Diretório alvo onde o arquivo será salvo
 	 * @param fileName      Nome do arquivo a ser gerado
 	 */
-	private static void generateCsvFile(List<String[]> data, String directoryPath, String fileName) {
+	private static String generateCsvFile(List<String[]> data, String directoryPath, String fileName) {
 
 		try {
 			String fileFullName = directoryPath + fileName + ".csv";
@@ -119,9 +119,12 @@ public class CsvUtil {
 			CSVWriter cw = new CSVWriter(fw);
 
 			cw.writeAll(data);
-
+			
+			System.out.println("Arquivo CSV gerado com sucesso em: " + file.getAbsolutePath());
+			
 			cw.close();
 			fw.close();
+			return file.getAbsolutePath();
 
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());

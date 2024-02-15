@@ -38,7 +38,7 @@ public class TestConnector {
 		
 		System.out.println("payload" + "\n" + response);
 
-		var connectorList = service.getConnectorList(inputData);
+		var connectorList = service.buildExportFiles(inputData);
 
 		System.out.println("Terminado");
 

@@ -1,5 +1,8 @@
 package com.marcos.processor.file;
 
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+
 import org.springframework.stereotype.Component;
 
 import com.marcos.processor.model.ConnectorList;
@@ -10,17 +13,33 @@ import com.marcos.processor.utils.JsonUtil;
 @Component
 public class GenerateConnectorFile {
 	
-	private static final String DEFAULT_PATH_OUTPUT_JSON = "./outputFiles/jsonFiles/";
-	private static final String DEFAULT_PATH_OUTPUT_CSV = "./outputFiles/csvFiles/";
-	private static final String DEFAULT_PATH_OUTPUT_EXCEL = "./outputFiles/excelFiles/";
-	private static final String DEFAULT_OUTPUT_PATH_FILES = "./outputFiles/";
+	private static final String DEFAULT_FOLDER_OUTPUT_JSON = "json/";
+	private static final String DEFAULT_FOLDER_OUTPUT_CSV = "csv/";
+	private static final String DEFAULT_FOLDER_OUTPUT_EXCEL = "excel/";
+	private static final String DEFAULT_OUTPUT_PATH_FILES = "outputFiles/";
+	private static String outputPathUsed = "";
+	
+	/**
+	 * 
+	 * @param pathDirectory
+	 * @param lastFolderName
+	 * @return
+	 */
+	private String buildPath(String pathDirectory) {
+		
+		if(!pathDirectory.endsWith("/")) {
+			pathDirectory = pathDirectory + "/";
+		}
+		
+		return pathDirectory;
+	}
 
 	/**
 	 * 
 	 * @param connectorList
 	 */
 	public void generateJsonFile(ConnectorList connectorList) {
-		this.generateJsonFile(connectorList, DEFAULT_PATH_OUTPUT_JSON, connectorList.getName());
+		this.generateJsonFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), connectorList.getName());
 	}
 	
 	/**
@@ -29,17 +48,20 @@ public class GenerateConnectorFile {
 	 * @param filename
 	 */
 	public void generateJsonFile(ConnectorList connectorList, String filename) {
-		this.generateJsonFile(connectorList, DEFAULT_PATH_OUTPUT_JSON, filename);
+		this.generateJsonFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), filename);
 	}
 	
 	/**
 	 * 
 	 * @param connectorList
-	 * @param path
+	 * @param pathDirectory
 	 * @param filename
 	 */
-	public void generateJsonFile(ConnectorList connectorList, String path, String filename) {
-		JsonUtil.jsonToFile(connectorList, path, filename + ".json");
+	public void generateJsonFile(ConnectorList connectorList, String pathDirectory, String filename) {
+		
+		var path = JsonUtil.jsonToFile(connectorList, pathDirectory + DEFAULT_FOLDER_OUTPUT_JSON, filename + ".json");
+		setOutputPathUsed(path);
+		
 	}
 	
 	
@@ -55,7 +77,7 @@ public class GenerateConnectorFile {
 	 * @param generateConnectorNameColumn Define se uma coluna com o nome dos connectores será adicionada ao arquivo
 	 */
 	public void generateCsvFile(ConnectorList connectorList, boolean generateConnectorNameColumn) {
-		this.generateCsvFile(connectorList, DEFAULT_PATH_OUTPUT_CSV, generateConnectorNameColumn, connectorList.getName());
+		this.generateCsvFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), generateConnectorNameColumn, connectorList.getName());
 	}
 	
 
@@ -67,7 +89,7 @@ public class GenerateConnectorFile {
 	 * @param filename Nome do arquivo alvo a ser gerado
 	 */
 	public void generateCsvFile(ConnectorList connectorList, boolean generateConnectorNameColumn, String filename) {
-		this.generateCsvFile(connectorList, DEFAULT_PATH_OUTPUT_CSV, generateConnectorNameColumn, filename);
+		this.generateCsvFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), generateConnectorNameColumn, filename);
 	}
 	
 	
@@ -78,19 +100,22 @@ public class GenerateConnectorFile {
 	 * @param generateConnectorNameColumn
 	 */
 	public void generateCsvFile(ConnectorList connectorList, String path,  boolean generateConnectorNameColumn) {
-		this.generateCsvFile(connectorList, path, generateConnectorNameColumn, connectorList.getName());
+		this.generateCsvFile(connectorList, this.buildPath(path), generateConnectorNameColumn, connectorList.getName());
 	}
 	
 
 	/**
 	 * 
 	 * @param connectorList Objeto {@link ConnectorList} que representa uma lista de connectores
-	 * @param path Diretório alvo onde o arquivo será salvo
+	 * @param pathDirectory Diretório alvo onde o arquivo será salvo
 	 * @param filename  Nome do arquivo a ser gerado
 	 * @param generateConnectorNameColumn Define se uma coluna com o nome dos connectores será adicionada ao arquivo
 	 */
-	public void generateCsvFile(ConnectorList connectorList, String path, boolean generateConnectorNameColumn, String filename) {
-		CsvUtil.connectorListToCsv(connectorList, path, filename, generateConnectorNameColumn);
+	public void generateCsvFile(ConnectorList connectorList, String pathDirectory, boolean generateConnectorNameColumn, String filename) {
+		
+		var path = CsvUtil.connectorListToCsv(connectorList, pathDirectory + DEFAULT_FOLDER_OUTPUT_CSV, filename, generateConnectorNameColumn);
+		
+		setOutputPathUsed(path);
 	}
 	
 	/**
@@ -99,7 +124,7 @@ public class GenerateConnectorFile {
 	 * @param generateConnectorNameColumn
 	 */
 	public void generateExcelFile(ConnectorList connectorList, boolean generateConnectorNameColumn) {
-		generateExcelFile(connectorList, DEFAULT_PATH_OUTPUT_EXCEL, generateConnectorNameColumn, connectorList.getName());
+		generateExcelFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), generateConnectorNameColumn, connectorList.getName());
 	}
 	
 	/**
@@ -109,7 +134,7 @@ public class GenerateConnectorFile {
 	 * @param generateConnectorNameColumn
 	 */
 	public void generateExcelFile(ConnectorList connectorList, String targetPathDirectory, boolean generateConnectorNameColumn) {
-		generateExcelFile(connectorList, targetPathDirectory, generateConnectorNameColumn, connectorList.getName());
+		generateExcelFile(connectorList, this.buildPath(targetPathDirectory), generateConnectorNameColumn, connectorList.getName());
 	}
 	
 	/**
@@ -119,17 +144,35 @@ public class GenerateConnectorFile {
 	 * @param fileName
 	 */
 	public void generateExcelFile(ConnectorList connectorList, boolean generateConnectorNameColumn, String fileName) {	
-		generateExcelFile(connectorList, DEFAULT_PATH_OUTPUT_EXCEL, generateConnectorNameColumn, fileName);
+		generateExcelFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), generateConnectorNameColumn, fileName);
 	}
 	
 	/**
 	 * 
 	 * @param connectorList
-	 * @param targetPathDirectory
+	 * @param pathDirectory
 	 * @param generateConnectorNameColumn
 	 * @param fileName
 	 */
-	public void generateExcelFile(ConnectorList connectorList, String targetPathDirectory, boolean generateConnectorNameColumn, String fileName) {
-		ExcelUtil.connectorListToExcel(connectorList, targetPathDirectory, generateConnectorNameColumn, fileName);
+	public void generateExcelFile(ConnectorList connectorList, String pathDirectory, boolean generateConnectorNameColumn, String fileName) {
+		
+		var path = ExcelUtil.connectorListToExcel(connectorList, pathDirectory + DEFAULT_FOLDER_OUTPUT_EXCEL, generateConnectorNameColumn, fileName);
+		
+		setOutputPathUsed(path);
 	}
+
+	public static String getOutputPathUsed() {
+		return outputPathUsed;
+	}
+
+	public static void setOutputPathUsed(String outputPathUsed) {
+		
+		
+		Path pathObject = FileSystems.getDefault().getPath(outputPathUsed);
+
+		String path = pathObject.getParent().getParent().toString();
+		
+		GenerateConnectorFile.outputPathUsed = path;
+	}
+
 }

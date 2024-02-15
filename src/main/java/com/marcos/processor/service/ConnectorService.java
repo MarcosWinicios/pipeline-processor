@@ -11,6 +11,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.marcos.processor.dto.input.GenerateConnectorListInputDTO;
 import com.marcos.processor.event.GenerateConnectorEvent;
+import com.marcos.processor.file.GenerateConnectorFile;
 import com.marcos.processor.listener.GenerateConnectorListener;
 import com.marcos.processor.model.Connector;
 import com.marcos.processor.model.ConnectorList;
@@ -52,6 +53,8 @@ public class ConnectorService {
 			List<RequestAPI> endpoints = PipelineUtil.extractEndPointsOfConnectors(steps);
 
 			String connectorName = pipeline.get("name").getAsString().toString();
+			
+			connectorName = PipelineUtil.removePrefixOfConnectorName(connectorName);
 
 			Connector connector = new Connector(connectorName, endpoints);
 
@@ -62,8 +65,23 @@ public class ConnectorService {
 		}
 
 	}
-
-	public ConnectorList getConnectorList(GenerateConnectorListInputDTO inputData) {
+	
+	/**
+	 * 
+	 * @return String path em que os arquivos foram salvos
+	 */
+	public String getPathSavedFiles() {
+		var response = GenerateConnectorFile.getOutputPathUsed();
+		
+		return response;
+	}
+	
+	/**
+	 * 
+	 * @param inputData
+	 * @return
+	 */
+	public ConnectorList buildExportFiles(GenerateConnectorListInputDTO inputData) {
 		List<JsonObject> pipelineList = JsonUtil.getJsonPipelinesList(inputData.getOriginDirectoryPathFiles());
 
 		List<Connector> connectorList = new ArrayList<>();
