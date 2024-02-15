@@ -24,17 +24,17 @@ public class GenerateConnectorListener {
 			return;
 		}
 		
-		if(event.getJsonTargetPath() == null && event.getFileName() == null) {
+		if(event.getOutputPathFile() == null && event.getFileName() == null) {
 			generatorConnectorFile.generateJsonFile(event.getConnectorList());
 			return;
 		}
 		
-		if(event.getJsonTargetPath() == null && event.getFileName() != null) {
+		if(event.getOutputPathFile() == null && event.getFileName() != null) {
 			generatorConnectorFile.generateJsonFile(event.getConnectorList(), event.getFileName());
 			return;
 		}
 		
-		generatorConnectorFile.generateJsonFile(event.getConnectorList(), event.getJsonTargetPath(), event.getFileName());
+		generatorConnectorFile.generateJsonFile(event.getConnectorList(), event.getOutputPathFile(), event.getFileName());
 	}
 	
 	@EventListener
@@ -44,39 +44,84 @@ public class GenerateConnectorListener {
 		}
 		
 		//path e filename padrões
-		if(event.getCsvTargetPath() == null && event.getFileName() == null) {
+		if(event.getOutputPathFile() == null && event.getFileName() == null) {
 			generatorConnectorFile.generateCsvFile(
 					event.getConnectorList(), 
-					event.isGenerateCsvWithConnectorsName());
+					event.isGroupByConnectorsName());
 			return;
 		}
 		
 		//filename padrão
-		if(event.getCsvTargetPath() != null && event.getFileName() == null) {
+		if(event.getOutputPathFile() != null && event.getFileName() == null) {
 			generatorConnectorFile.generateCsvFile(
 					event.getConnectorList(), 
-					event.getCsvTargetPath(), 
-					event.isGenerateCsvWithConnectorsName());
+					event.getOutputPathFile(), 
+					event.isGroupByConnectorsName());
 			return;
 		}
 		
 		//path padrão 
-		if(event.getCsvTargetPath() == null && event.getFileName() != null) {
+		if(event.getOutputPathFile() == null && event.getFileName() != null) {
 			generatorConnectorFile.generateCsvFile(
 					event.getConnectorList(), 
-					event.isGenerateCsvWithConnectorsName(),
+					event.isGroupByConnectorsName(),
 					event.getFileName()
 					);
 			return;
 		}
 		
 	
-		//path e filenames customizados
+		//path e filename customizados
 		generatorConnectorFile.generateCsvFile(
 				event.getConnectorList(), 
-				event.getCsvTargetPath(), 
-				event.isGenerateCsvWithConnectorsName(),
+				event.getOutputPathFile(), 
+				event.isGroupByConnectorsName(),
 				event.getFileName() 
 				);
 	}
+	
+	@EventListener
+	public void generateConnectorExcelFileListener(GenerateConnectorEvent event) {
+		if(!event.isGenerateExcelFile()) {
+			return;
+		}
+	
+		//path e filename padrões
+				if(event.getOutputPathFile() == null && event.getFileName() == null) {
+					generatorConnectorFile.generateExcelFile(
+							event.getConnectorList(), 
+							event.isGroupByConnectorsName());
+					return;
+				}
+				
+				//filename padrão
+				if(event.getOutputPathFile() != null && event.getFileName() == null) {
+					generatorConnectorFile.generateExcelFile(
+							event.getConnectorList(), 
+							event.getOutputPathFile(), 
+							event.isGroupByConnectorsName());
+					return;
+				}
+				
+				//path padrão 
+				if(event.getOutputPathFile() == null && event.getFileName() != null) {
+					generatorConnectorFile.generateExcelFile(
+							event.getConnectorList(), 
+							event.isGroupByConnectorsName(),
+							event.getFileName()
+							);
+					return;
+				}
+		
+		
+		//path e fileName customizados
+		this.generatorConnectorFile.generateExcelFile(
+				event.getConnectorList(), 
+				event.getOutputPathFile(), 
+				event.isGroupByConnectorsName(), 
+				event.getFileName());
+	}
+	
+	
+	
 }

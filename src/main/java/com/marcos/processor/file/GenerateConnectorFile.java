@@ -4,23 +4,40 @@ import org.springframework.stereotype.Component;
 
 import com.marcos.processor.model.ConnectorList;
 import com.marcos.processor.utils.CsvUtil;
+import com.marcos.processor.utils.ExcelUtil;
 import com.marcos.processor.utils.JsonUtil;
 
 @Component
 public class GenerateConnectorFile {
 	
-	private static final String DEFAULT_PATH_OUTPUT_JSON = "/home/marcos-winicios/Workspaces/tmp/jsonOutputFiles/";
-	private static final String DEFAULT_PATH_OUTPUT_CSV = "/home/marcos-winicios/Workspaces/tmp/csvOutputFiles/";
+	private static final String DEFAULT_PATH_OUTPUT_JSON = "./outputFiles/jsonFiles/";
+	private static final String DEFAULT_PATH_OUTPUT_CSV = "./outputFiles/csvFiles/";
+	private static final String DEFAULT_PATH_OUTPUT_EXCEL = "./outputFiles/excelFiles/";
+	private static final String DEFAULT_OUTPUT_PATH_FILES = "./outputFiles/";
 
-	
+	/**
+	 * 
+	 * @param connectorList
+	 */
 	public void generateJsonFile(ConnectorList connectorList) {
 		this.generateJsonFile(connectorList, DEFAULT_PATH_OUTPUT_JSON, connectorList.getName());
 	}
 	
+	/**
+	 * 
+	 * @param connectorList
+	 * @param filename
+	 */
 	public void generateJsonFile(ConnectorList connectorList, String filename) {
 		this.generateJsonFile(connectorList, DEFAULT_PATH_OUTPUT_JSON, filename);
 	}
 	
+	/**
+	 * 
+	 * @param connectorList
+	 * @param path
+	 * @param filename
+	 */
 	public void generateJsonFile(ConnectorList connectorList, String path, String filename) {
 		JsonUtil.jsonToFile(connectorList, path, filename + ".json");
 	}
@@ -74,5 +91,45 @@ public class GenerateConnectorFile {
 	 */
 	public void generateCsvFile(ConnectorList connectorList, String path, boolean generateConnectorNameColumn, String filename) {
 		CsvUtil.connectorListToCsv(connectorList, path, filename, generateConnectorNameColumn);
+	}
+	
+	/**
+	 * 
+	 * @param connectorList
+	 * @param generateConnectorNameColumn
+	 */
+	public void generateExcelFile(ConnectorList connectorList, boolean generateConnectorNameColumn) {
+		generateExcelFile(connectorList, DEFAULT_PATH_OUTPUT_EXCEL, generateConnectorNameColumn, connectorList.getName());
+	}
+	
+	/**
+	 * 
+	 * @param connectorList
+	 * @param targetPathDirectory
+	 * @param generateConnectorNameColumn
+	 */
+	public void generateExcelFile(ConnectorList connectorList, String targetPathDirectory, boolean generateConnectorNameColumn) {
+		generateExcelFile(connectorList, targetPathDirectory, generateConnectorNameColumn, connectorList.getName());
+	}
+	
+	/**
+	 * 
+	 * @param connectorList
+	 * @param generateConnectorNameColumn
+	 * @param fileName
+	 */
+	public void generateExcelFile(ConnectorList connectorList, boolean generateConnectorNameColumn, String fileName) {	
+		generateExcelFile(connectorList, DEFAULT_PATH_OUTPUT_EXCEL, generateConnectorNameColumn, fileName);
+	}
+	
+	/**
+	 * 
+	 * @param connectorList
+	 * @param targetPathDirectory
+	 * @param generateConnectorNameColumn
+	 * @param fileName
+	 */
+	public void generateExcelFile(ConnectorList connectorList, String targetPathDirectory, boolean generateConnectorNameColumn, String fileName) {
+		ExcelUtil.connectorListToExcel(connectorList, targetPathDirectory, fileName);
 	}
 }
