@@ -14,8 +14,6 @@ import com.opencsv.CSVWriter;
 
 @Component
 public class CsvUtil {
-	
-	private static int count = 0;
 
 	/**
 	 * 
@@ -104,14 +102,7 @@ public class CsvUtil {
 	private static void generateCsvFile(List<String[]> data, String directoryPath, String fileName) {
 
 		try {
-			
-			count = count + 1;
-			
-			System.out.println(count);
-			
 			String fileFullName = directoryPath + fileName + ".csv";
-
-			System.out.println("directory: " + fileFullName);
 
 			File directory = new File(fileFullName).getParentFile();
 			if (!directory.exists()) {

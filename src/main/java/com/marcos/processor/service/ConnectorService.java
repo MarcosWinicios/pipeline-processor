@@ -21,24 +21,9 @@ import com.marcos.processor.utils.PipelineUtil;
 @Service
 public class ConnectorService {
 
-	private static final String PATH_FILE = "src/main/resources/connectors/v3/TCOR-V3-ACCOUNT-LIST.json";
 
-//	private static final String PATH_DIRECTORY = "src/main/resources/connectors/v3/influx";
-
-	
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
-	
-	
-	public Connector extractConnectorOfFile() {
-		try {
-			return this.extractConnectorOfFile(PATH_FILE);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e.getMessage());
-		}
-
-	}
 
 	public Connector extractConnectorOfFile(String path) {
 		try {
@@ -60,7 +45,7 @@ public class ConnectorService {
 
 	}
 
-	public Connector extractConnectorOfPipelineJson(JsonObject pipeline) {
+	public Connector extractConnectorOfJsonPipeline(JsonObject pipeline) {
 		try {
 			JsonArray steps = PipelineUtil.extractSteps(pipeline);
 
@@ -78,83 +63,106 @@ public class ConnectorService {
 
 	}
 
-	public String getConnector() {
-		Connector connector = this.extractConnectorOfFile();
-		String response = JsonUtil.toJson(connector);
-		return response;
-	}
-
-	public String getConnector(String path) {
-		Connector connector = this.extractConnectorOfFile(path);
-		String response = JsonUtil.toJson(connector);
-		return response;
-	}
-
-
 	public ConnectorList getConnectorList(GenerateConnectorListInputDTO inputData) {
 		List<JsonObject> pipelineList = JsonUtil.getJsonPipelinesList(inputData.getOriginDirectoryPathFiles());
+
+		List<Connector> connectorList = new ArrayList<>();
+
+		connectorList = this.pipeListToConnectorList(pipelineList, inputData.isAddEmptyConnectors());
+
+		String connectorsName = PipelineUtil.getConnectorsName(inputData.getOriginDirectoryPathFiles());
 		
+		var ordenedList = this.moveEmptyListsForEnd(connectorList);
+
+		ConnectorList connectors = new ConnectorList(connectorsName, ordenedList);
+
+		this.generateFiles(connectors, inputData.isGenerateJsonFile(), inputData.isGenerateCsvFile(),
+				inputData.getJsonTargetPath(), inputData.getCsvTargetPath(),
+				inputData.isGenerateCsvWithConnectorsName(), inputData.getFileName());
+
+		return connectors;
+	}
+
+
+	private List<Connector> pipeListToConnectorList(List<JsonObject> pipelineList, boolean addEmptyRequestList) {
+		if (addEmptyRequestList) {
+			return this.pipeListToConnectorListWithEmptyRequestList(pipelineList);
+		}
+
+		return this.pipeListToConnectorListWithoutEmptyRequestList(pipelineList);
+	}
+
+	private List<Connector> pipeListToConnectorListWithoutEmptyRequestList(List<JsonObject> pipelineList) {
+
 		List<Connector> connectorList = new ArrayList<>();
 
 		for (JsonObject pipeline : pipelineList) {
-			Connector connector = this.extractConnectorOfPipelineJson(pipeline);
+			Connector connector = this.extractConnectorOfJsonPipeline(pipeline);
+
+			if (connector.getRequestList().size() > 0) {
+				connectorList.add(connector);
+			}
+		}
+		return connectorList;
+	}
+
+	private List<Connector> pipeListToConnectorListWithEmptyRequestList(List<JsonObject> pipelineList) {
+
+		List<Connector> connectorList = new ArrayList<>();
+
+		for (JsonObject pipeline : pipelineList) {
+			Connector connector = this.extractConnectorOfJsonPipeline(pipeline);
+
 			connectorList.add(connector);
 		}
-		//---------
-		String lastdirectoryName = JsonUtil.getLastPathDirectoryName();
-
-		String connectorsName = "";
-
-		if (lastdirectoryName.equals("influx")) {
-			connectorsName = JsonUtil.getPipelinesDirectoryName();
-		} else {
-			connectorsName = lastdirectoryName;
-		}
-		
-		//---------
-		
-		ConnectorList connectors = new ConnectorList(connectorsName, connectorList);
-		
-		
-		this.generateFiles(
-				connectors, 
-				inputData.isGenerateJsonFile(), 
-				inputData.isGenerateCsvFile(),
-				inputData.getJsonTargetPath(),
-				inputData.getCsvTargetPath(),
-				inputData.isGenerateCsvWithConnectorsName(),
-				inputData.getFileName()
-			);
-		
-		return connectors;
+		return connectorList;
 	}
-	
-	private void generateFiles(ConnectorList connectorList, boolean generateJsonFile, boolean generateCsvFile, 
-			String jsonPathTargetFile, String csvPathTargetFile, boolean generateCsvWithConnectorsName, String filename) {
+
+	private List<Connector> moveEmptyListsForEnd(List<Connector> list) {
+		var emptyList = new ArrayList<Connector>();
+		var responseList = new ArrayList<Connector>();
+
+		for (Connector connector : list) {
+			if (connector.getRequestList().size() > 0) {
+				responseList.add(connector);
+				continue;
+			}
+			emptyList.add(connector);
+		}
+
+		for (Connector connector : emptyList) {
+			responseList.add(connector);
+		}
+
+		return responseList;
+	}
+
+	private void generateFiles(ConnectorList connectorList, boolean generateJsonFile, boolean generateCsvFile,
+			String jsonPathTargetFile, String csvPathTargetFile, boolean generateCsvWithConnectorsName,
+			String filename) {
 
 		GenerateConnectorEvent event = new GenerateConnectorEvent(connectorList, generateJsonFile, generateCsvFile);
-		
-		
-		if(jsonPathTargetFile != null) {
+
+		if (jsonPathTargetFile != null) {
 			event.setJsonTargetPath(jsonPathTargetFile);
 		}
-		
-		if(csvPathTargetFile != null) {
+
+		if (csvPathTargetFile != null) {
 			event.setCsvTargetPath(csvPathTargetFile);
 		}
-		
-		if(generateCsvFile) {
+
+		if (generateCsvFile) {
 			event.setGenerateCsvWithConnectorsName(generateCsvWithConnectorsName);
 		}
-		
-		if(filename != null) {
+
+		if (filename != null) {
 			event.setFileName(filename);
 		}
-		
+
 		GenerateConnectorListener listener = new GenerateConnectorListener();
 		listener.generateConnectorJsonFileListener(event);
 		listener.generateConnectorCsvFileListener(event);
-		
+
 //		eventPublisher.publishEvent(event);
 	}
 }

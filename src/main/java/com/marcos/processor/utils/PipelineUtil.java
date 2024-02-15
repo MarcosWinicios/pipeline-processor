@@ -1,5 +1,7 @@
 package com.marcos.processor.utils;
 
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +14,9 @@ import com.marcos.processor.model.RequestAPI;
 public class PipelineUtil {
 
 	private final static List<String> BASE_URL_VARIABLES = new ArrayList<String>(
-			Arrays.asList("$V{TSMC_TBNK_SERVER}", "$V{TSMC_TCOR_SERVER}"));
+			Arrays.asList("$V{TSMC_TBNK_SERVER}", "$V{TSMC_TCOR_SERVER}", "$V{TSMC_MOCK_TBNK_SERVER}"));
+	
+	private final static String DEFAULT_LAST_DIRECTORY_NAME = "influx";
 	
 	@SuppressWarnings("unused")
 	public static JsonArray extractSteps(JsonObject pipelineJson) throws Exception {		
@@ -55,6 +59,20 @@ public class PipelineUtil {
 		}
 
 		return new RequestAPI(method, endpoint, description);
+
+	}
+	
+	public static String getConnectorsName(String path) {
+		Path pathObject = FileSystems.getDefault().getPath(path);
+
+		String penultimateDirectoryName = pathObject.getParent().getFileName().toString();
+		
+		String lastDirectoryName = pathObject.getFileName().toString();
+
+		if (lastDirectoryName.equals(DEFAULT_LAST_DIRECTORY_NAME)) {
+			return penultimateDirectoryName;
+		}
+		return lastDirectoryName;
 
 	}
 

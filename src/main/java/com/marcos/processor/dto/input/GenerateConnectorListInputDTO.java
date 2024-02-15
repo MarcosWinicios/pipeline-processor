@@ -14,6 +14,7 @@ public class GenerateConnectorListInputDTO {
 	private String fileName;
 	private String jsonTargetPath;
 	private String csvTargetPath;
+	private boolean addEmptyConnectors;
 
 	/**
 	 * 
