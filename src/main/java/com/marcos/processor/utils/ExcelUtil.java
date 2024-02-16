@@ -3,6 +3,8 @@ package com.marcos.processor.utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -15,8 +17,8 @@ import com.marcos.processor.model.ConnectorList;
 
 @Component
 public class ExcelUtil {
-	private static final String[] HEADERS_GROUP_BY_CONNECTORS_NAME = {"CONNECTOR", "METHOD", "ENDPOINT" };
-	private static final String[] HEADERS_WITHOUT_CONNECTORS_NAME = {"METHOD", "ENDPOINT" };
+	private static final String[] HEADERS_GROUP_BY_CONNECTORS_NAME = { "CONNECTOR", "METHOD", "ENDPOINT" };
+	private static final String[] HEADERS_WITHOUT_CONNECTORS_NAME = { "METHOD", "ENDPOINT" };
 
 	/**
 	 * 
@@ -24,48 +26,72 @@ public class ExcelUtil {
 	 * @param pathDirectory
 	 * @param groupByConnectorsName
 	 * @param filename
-	 * @throws IOException 
+	 * @throws IOException
 	 */
-	public static String connectorListToExcel(ConnectorList connectorList, String pathDirectory, boolean groupByConnectorsName, String filename)  {
-		
+	public static String connectorListToExcel(ConnectorList connectorList, String pathDirectory,
+			boolean groupByConnectorsName, String filename) {
+
 		String[] headers = null;
 		String[][] data = null;
 
-		
-		if(groupByConnectorsName) {
-			headers = HEADERS_GROUP_BY_CONNECTORS_NAME;
+		if (groupByConnectorsName) {
+			headers = new String[3];
+
+			headers[0] = connectorList.getTitle().toUpperCase();
+			headers[1] = connectorList.getTitle().toUpperCase();
+			headers[2] = connectorList.getTitle().toUpperCase();
+
 			data = generateDateWithGroupingByConnectorName(connectorList);
-		}else {
-			headers = HEADERS_WITHOUT_CONNECTORS_NAME;
+		} else {
+			headers = new String[2];
+			headers[0] = connectorList.getTitle().toUpperCase();
+			headers[1] = connectorList.getTitle().toUpperCase();
+
 			data = generateDateWithoutGroupingByConnectorName(connectorList);
 		}
-		
-		
+
 		// Chamada do método para criar e gravar o arquivo Excel
 		try {
-			
+
 			return ExcelUtil.generateExcelFile(headers, data, pathDirectory, filename);
-			
+
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
 
 	}
-	
-	private static String[][] generateDateWithGroupingByConnectorName(ConnectorList connectorList){
-		
 
-		int lines = connectorList.getConnectors().size();
+	private static String[][] generateDateWithGroupingByConnectorName(ConnectorList connectorList) {
+
 		int columns = HEADERS_GROUP_BY_CONNECTORS_NAME.length;
 
-		String[][] data = new String[lines][columns];
+		String[][] data = null;
 
-		for (int i = 0; i < data.length; i++) {
+		List<String[]> dataList = new ArrayList<>();
+
+		for (int i = 0; i < connectorList.getConnectors().size(); i++) {
+			String[] line = new String[columns];
+
 			var connectorName = "";
 			var httpMethod = "";
 			var endpoint = "";
 
+			if (i == 0) {
+				connectorName = HEADERS_GROUP_BY_CONNECTORS_NAME[0];
+				httpMethod = HEADERS_GROUP_BY_CONNECTORS_NAME[1];
+				endpoint = HEADERS_GROUP_BY_CONNECTORS_NAME[2];
+
+				line[0] = connectorName;
+				line[1] = httpMethod;
+				line[2] = endpoint;
+
+				dataList.add(line);
+
+				continue;
+			}
+
 			connectorName = connectorList.getConnectors().get(i).getName();
+
 			var size = connectorList.getConnectors().get(i).getRequestList().size();
 
 			if (size > 0) {
@@ -76,39 +102,72 @@ public class ExcelUtil {
 					httpMethod = connectorList.getConnectors().get(i).getRequestList().get(j).getHttpMethod();
 					endpoint = connectorList.getConnectors().get(i).getRequestList().get(j).getEndpoint();
 
-					data[auxCount][0] = connectorName;
-					data[auxCount][1] = httpMethod;
-					data[auxCount][2] = endpoint;
+					line[0] = connectorName;
+					line[1] = httpMethod;
+					line[2] = endpoint;
+					dataList.add(line);
 				}
 
 				i = auxCount;
+				continue;
 			}
 
-			data[i][0] = connectorName;
-			data[i][1] = httpMethod;
-			data[i][2] = endpoint;
+			line[0] = connectorName;
+			line[1] = httpMethod;
+			line[2] = endpoint;
+			dataList.add(line);
 		}
 
-		printData(data);
+		data = listToArray(dataList);
 
-		
-		
 		return data;
 	}
-	
-private static String[][] generateDateWithoutGroupingByConnectorName(ConnectorList connectorList){
-		
 
-		int lines = connectorList.getConnectors().size();
+	private static String[][] listToArray(List<String[]> list) {
+		String[][] response = null;
+		int columns = list.get(0).length;
+		int lines = list.size();
+
+		response = new String[lines][columns];
+
+		for (int i = 0; i < list.size(); i++) {
+			if (columns == 3) {
+				response[i][0] = list.get(i)[0];
+				response[i][1] = list.get(i)[1];
+				response[i][2] = list.get(i)[2];
+			} else if(columns == 2) {
+				response[i][0] = list.get(i)[0];
+				response[i][1] = list.get(i)[1];
+			}
+		}
+
+		return response;
+	}
+
+	private static String[][] generateDateWithoutGroupingByConnectorName(ConnectorList connectorList) {
+
 		int columns = HEADERS_WITHOUT_CONNECTORS_NAME.length;
 
-		String[][] data = new String[lines][columns];
+		String[][] data = null;
 
-		for (int i = 0; i < data.length; i++) {
+		List<String[]> dataList = new ArrayList<>();
+
+		for (int i = 0; i < connectorList.getConnectors().size(); i++) {
+			String[] line = new String[columns];
+
 			var httpMethod = "";
 			var endpoint = "";
 
 			var size = connectorList.getConnectors().get(i).getRequestList().size();
+			
+			if(i == 0) {
+				line[0] = HEADERS_WITHOUT_CONNECTORS_NAME[0];
+				line[1] = HEADERS_WITHOUT_CONNECTORS_NAME[1];
+				
+				dataList.add(line);
+				
+				continue;
+			}
 
 			if (size > 0) {
 				int auxCount = i;
@@ -117,23 +176,24 @@ private static String[][] generateDateWithoutGroupingByConnectorName(ConnectorLi
 					auxCount = auxCount + j;
 					httpMethod = connectorList.getConnectors().get(i).getRequestList().get(j).getHttpMethod();
 					endpoint = connectorList.getConnectors().get(i).getRequestList().get(j).getEndpoint();
-					
-					data[auxCount][0] = httpMethod;
-					data[auxCount][1] = endpoint;
+
+					line[0] = httpMethod;
+					line[1] = endpoint;
+					dataList.add(line);
 				}
 
 				i = auxCount;
 			}
 
-			data[i][0] = httpMethod;
-			data[i][1] = endpoint;
+			line[0] = httpMethod;
+			line[1] = endpoint;
+			dataList.add(line);
 		}
 
-//		printData(data);
-		
+		data = listToArray(dataList);
+
 		return data;
 	}
- 
 
 	public static String generateExcelFile(String[] headers, String[][] data, String pathDirectory, String fileName)
 			throws IOException {
@@ -165,7 +225,7 @@ private static String[][] generateDateWithoutGroupingByConnectorName(ConnectorLi
 				row.createCell(j).setCellValue(data[i][j]);
 			}
 		}
-		
+
 		// Salvando o arquivo Excel
 		File file = new File(directory, fileName + ".xlsx");
 		try (FileOutputStream fileOut = new FileOutputStream(file)) {
@@ -183,13 +243,13 @@ private static String[][] generateDateWithoutGroupingByConnectorName(ConnectorLi
 		for (int i = 0; i < data.length; i++) {
 
 			for (int j = 0; j < data[i].length; j++) {
-				
-				if(j == (data[i].length -1)) {	
+
+				if (j == (data[i].length - 1)) {
 					System.out.println(data[i][j]);
 					continue;
 				}
 				System.out.print(data[i][j] + " | ");
-				
+
 			}
 		}
 		System.out.println("\n\nTERMINANDO DE PRINTAR DADOS\n\n");
