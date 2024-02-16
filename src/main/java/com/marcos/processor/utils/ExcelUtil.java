@@ -6,10 +6,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 
@@ -135,7 +142,7 @@ public class ExcelUtil {
 				response[i][0] = list.get(i)[0];
 				response[i][1] = list.get(i)[1];
 				response[i][2] = list.get(i)[2];
-			} else if(columns == 2) {
+			} else if (columns == 2) {
 				response[i][0] = list.get(i)[0];
 				response[i][1] = list.get(i)[1];
 			}
@@ -159,13 +166,13 @@ public class ExcelUtil {
 			var endpoint = "";
 
 			var size = connectorList.getConnectors().get(i).getRequestList().size();
-			
-			if(i == 0) {
+
+			if (i == 0) {
 				line[0] = HEADERS_WITHOUT_CONNECTORS_NAME[0];
 				line[1] = HEADERS_WITHOUT_CONNECTORS_NAME[1];
-				
+
 				dataList.add(line);
-				
+
 				continue;
 			}
 
@@ -197,6 +204,7 @@ public class ExcelUtil {
 
 	public static String generateExcelFile(String[] headers, String[][] data, String pathDirectory, String fileName)
 			throws IOException {
+
 		// Criando um diretório se não existir
 		File directory = new File(pathDirectory);
 		if (!directory.exists()) {
@@ -205,6 +213,15 @@ public class ExcelUtil {
 
 		// Criando um novo livro de trabalho (workbook)
 		Workbook workbook = new XSSFWorkbook();
+
+		// *****************
+		CellStyle headerStyle = createHeaderStyle(workbook);
+
+		CellStyle borderStyle = createBorderStyle(workbook);
+
+//		CellStyle columnMethoStyle = createColumnMethodStyle(workbook);
+
+		CellStyle stripeStyle = createStripeStyle(workbook);
 
 		// Criando uma nova planilha (sheet)
 		Sheet sheet = workbook.createSheet("Planilha1");
@@ -216,14 +233,46 @@ public class ExcelUtil {
 		for (int i = 0; i < headers.length; i++) {
 			Cell cell = headerRow.createCell(i);
 			cell.setCellValue(headers[i]);
+			cell.setCellStyle(headerStyle); // Aplicando o estilo centralizado e em negrito
 		}
 
 		// Adicionando os dados à planilha
 		for (int i = 0; i < data.length; i++) {
 			Row row = sheet.createRow(i + 1);
 			for (int j = 0; j < data[i].length; j++) {
-				row.createCell(j).setCellValue(data[i][j]);
+				Cell cell = row.createCell(j);
+				cell.setCellValue(data[i][j]);
+
+				if (i == 0) {
+					cell.setCellStyle(headerStyle); // Aplicando o estilo centralizado e em negrito
+				}
+
+				if (i > 0) {
+					cell.setCellStyle(borderStyle);
+
+					if (data[i].length == 3) {
+						if (j == 1) {
+							cell.setCellStyle(createColumnMethodStyle( workbook, data[i][j]));
+						}
+					}
+
+					if (data[i].length == 2) {
+						if (j == 0) {
+							cell.setCellStyle(createColumnMethodStyle(workbook, data[i][j]));
+						}
+					}
+
+				}
+
 			}
+		}
+		
+		// Mescla da primeira célula até a última do cabeçalho
+		sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, headers.length - 1)); 
+
+		// Ajustando a largura das colunas para que o conteúdo seja exibido adequadamente
+		for (int i = 0; i < headers.length; i++) {
+			sheet.autoSizeColumn(i);
 		}
 
 		// Salvando o arquivo Excel
@@ -236,6 +285,72 @@ public class ExcelUtil {
 		// Fechando o workbook
 		workbook.close();
 		return file.getAbsolutePath();
+	}
+
+	// Método para criar o estilo de célula de cabeçalho
+	private static CellStyle createHeaderStyle(Workbook workbook) {
+		CellStyle headerStyle = workbook.createCellStyle();
+		Font font = workbook.createFont();
+		font.setBold(true);
+		headerStyle.setFont(font);
+		headerStyle.setAlignment(HorizontalAlignment.CENTER);
+		headerStyle.setFillForegroundColor(IndexedColors.GREY_40_PERCENT.getIndex());
+		headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		headerStyle.setBorderTop(BorderStyle.THIN);
+		headerStyle.setBorderBottom(BorderStyle.THIN);
+		headerStyle.setBorderLeft(BorderStyle.THIN);
+		headerStyle.setBorderRight(BorderStyle.THIN);
+		return headerStyle;
+	}
+
+	// Método para criar o estilo de célula de borda
+	private static CellStyle createBorderStyle(Workbook workbook) {
+		CellStyle borderStyle = workbook.createCellStyle();
+		borderStyle.setBorderTop(BorderStyle.THIN);
+		borderStyle.setBorderBottom(BorderStyle.THIN);
+		borderStyle.setBorderLeft(BorderStyle.THIN);
+		borderStyle.setBorderRight(BorderStyle.THIN);
+		return borderStyle;
+	}
+
+	// Método para criar o estilo de célula de método
+	private static CellStyle createColumnMethodStyle(Workbook workbook, String method) {
+		CellStyle columnMethodStyle = workbook.createCellStyle();
+		columnMethodStyle.setAlignment(HorizontalAlignment.CENTER);
+		columnMethodStyle.setBorderTop(BorderStyle.THIN);
+		columnMethodStyle.setBorderBottom(BorderStyle.THIN);
+		columnMethodStyle.setBorderLeft(BorderStyle.THIN);
+		columnMethodStyle.setBorderRight(BorderStyle.THIN);
+		
+		Font font = workbook.createFont();
+		
+		
+		if(method.equals("POST")) {
+			font.setColor(IndexedColors.DARK_TEAL.getIndex());
+			font.setBold(true);
+			columnMethodStyle.setFont(font);
+		}
+		
+		if(method.equals("GET")) {
+			font.setColor(IndexedColors.GREEN.getIndex());
+			font.setBold(true);
+			columnMethodStyle.setFont(font);
+		}
+		
+		return columnMethodStyle;
+	}
+
+	// Método para criar o estilo de célula de método
+	private static CellStyle createStripeStyle(Workbook workbook) {
+		CellStyle stripeStyle = workbook.createCellStyle();
+
+		stripeStyle.setBorderTop(BorderStyle.THIN);
+		stripeStyle.setBorderBottom(BorderStyle.THIN);
+		stripeStyle.setBorderLeft(BorderStyle.THIN);
+		stripeStyle.setBorderRight(BorderStyle.THIN);
+		stripeStyle.setFillBackgroundColor(IndexedColors.BLUE_GREY.getIndex());
+
+		return stripeStyle;
 	}
 
 	public static void printData(String[][] data) {
