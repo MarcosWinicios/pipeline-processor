@@ -9,7 +9,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class ConnectorList {
 	
-	private String name;
+	private String title;
 	
 	private List<Connector> connectors;
 }

@@ -39,7 +39,7 @@ public class GenerateConnectorFile {
 	 * @param connectorList
 	 */
 	public void generateJsonFile(ConnectorList connectorList) {
-		this.generateJsonFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), connectorList.getName());
+		this.generateJsonFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), connectorList.getTitle());
 	}
 	
 	/**
@@ -77,7 +77,7 @@ public class GenerateConnectorFile {
 	 * @param generateConnectorNameColumn Define se uma coluna com o nome dos connectores será adicionada ao arquivo
 	 */
 	public void generateCsvFile(ConnectorList connectorList, boolean generateConnectorNameColumn) {
-		this.generateCsvFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), generateConnectorNameColumn, connectorList.getName());
+		this.generateCsvFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), generateConnectorNameColumn, connectorList.getTitle());
 	}
 	
 
@@ -100,7 +100,7 @@ public class GenerateConnectorFile {
 	 * @param generateConnectorNameColumn
 	 */
 	public void generateCsvFile(ConnectorList connectorList, String path,  boolean generateConnectorNameColumn) {
-		this.generateCsvFile(connectorList, this.buildPath(path), generateConnectorNameColumn, connectorList.getName());
+		this.generateCsvFile(connectorList, this.buildPath(path), generateConnectorNameColumn, connectorList.getTitle());
 	}
 	
 
@@ -124,7 +124,7 @@ public class GenerateConnectorFile {
 	 * @param generateConnectorNameColumn
 	 */
 	public void generateExcelFile(ConnectorList connectorList, boolean generateConnectorNameColumn) {
-		generateExcelFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), generateConnectorNameColumn, connectorList.getName());
+		generateExcelFile(connectorList, this.buildPath(DEFAULT_OUTPUT_PATH_FILES), generateConnectorNameColumn, connectorList.getTitle());
 	}
 	
 	/**
@@ -134,7 +134,7 @@ public class GenerateConnectorFile {
 	 * @param generateConnectorNameColumn
 	 */
 	public void generateExcelFile(ConnectorList connectorList, String targetPathDirectory, boolean generateConnectorNameColumn) {
-		generateExcelFile(connectorList, this.buildPath(targetPathDirectory), generateConnectorNameColumn, connectorList.getName());
+		generateExcelFile(connectorList, this.buildPath(targetPathDirectory), generateConnectorNameColumn, connectorList.getTitle());
 	}
 	
 	/**
