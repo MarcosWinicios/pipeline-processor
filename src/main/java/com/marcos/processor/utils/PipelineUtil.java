@@ -79,7 +79,7 @@ public class PipelineUtil {
 
 	}
 
-	public static String removePrefixOfConnectorName(String connectorName) {
+	public static String removePrefixOfConnectorName(String connectorName) {		
 		for (String baseUrl : PREFIX_CONNECTORS_NAME) {
 			connectorName = connectorName.replace(baseUrl, "");
 		}

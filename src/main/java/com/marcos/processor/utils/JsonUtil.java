@@ -70,7 +70,7 @@ public class JsonUtil {
 				gson.toJson(obj, writer);
 			}
 			
-			System.out.println("Arquivo JSON gerado com sucesso em: " + file.getAbsolutePath());
+			System.err.println("\nArquivo JSON gerado com sucesso em: " + file.getAbsolutePath() + "\n");
 			
 			return file.getAbsolutePath();
 		} catch (Exception e) {

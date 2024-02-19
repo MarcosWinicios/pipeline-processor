@@ -59,7 +59,7 @@ public class GenerateConnectorFile {
 	 */
 	public void generateJsonFile(ConnectorList connectorList, String pathDirectory, String filename) {
 		
-		var path = JsonUtil.jsonToFile(connectorList, pathDirectory + DEFAULT_FOLDER_OUTPUT_JSON, filename + ".json");
+		var path = JsonUtil.jsonToFile(connectorList, this.buildPath(pathDirectory) + DEFAULT_FOLDER_OUTPUT_JSON, filename + ".json");
 		setOutputPathUsed(path);
 		
 	}
@@ -99,8 +99,8 @@ public class GenerateConnectorFile {
 	 * @param path
 	 * @param generateConnectorNameColumn
 	 */
-	public void generateCsvFile(ConnectorList connectorList, String path,  boolean generateConnectorNameColumn) {
-		this.generateCsvFile(connectorList, this.buildPath(path), generateConnectorNameColumn, connectorList.getTitle());
+	public void generateCsvFile(ConnectorList connectorList, String pathDirectory,  boolean generateConnectorNameColumn) {
+		this.generateCsvFile(connectorList, this.buildPath(pathDirectory), generateConnectorNameColumn, connectorList.getTitle());
 	}
 	
 
@@ -113,7 +113,7 @@ public class GenerateConnectorFile {
 	 */
 	public void generateCsvFile(ConnectorList connectorList, String pathDirectory, boolean generateConnectorNameColumn, String filename) {
 		
-		var path = CsvUtil.connectorListToCsv(connectorList, pathDirectory + DEFAULT_FOLDER_OUTPUT_CSV, filename, generateConnectorNameColumn);
+		var path = CsvUtil.connectorListToCsv(connectorList, this.buildPath(pathDirectory) + DEFAULT_FOLDER_OUTPUT_CSV, filename, generateConnectorNameColumn);
 		
 		setOutputPathUsed(path);
 	}
@@ -156,7 +156,7 @@ public class GenerateConnectorFile {
 	 */
 	public void generateExcelFile(ConnectorList connectorList, String pathDirectory, boolean generateConnectorNameColumn, String fileName) {
 		
-		var path = ExcelUtil.connectorListToExcel(connectorList, pathDirectory + DEFAULT_FOLDER_OUTPUT_EXCEL, generateConnectorNameColumn, fileName);
+		var path = ExcelUtil.connectorListToExcel(connectorList, this.buildPath(pathDirectory) + DEFAULT_FOLDER_OUTPUT_EXCEL, generateConnectorNameColumn, fileName);
 		
 		setOutputPathUsed(path);
 	}
