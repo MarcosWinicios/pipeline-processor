@@ -22,7 +22,6 @@ import com.marcos.processor.utils.PipelineUtil;
 @Service
 public class ConnectorService {
 
-
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
@@ -53,7 +52,7 @@ public class ConnectorService {
 			List<RequestAPI> endpoints = PipelineUtil.extractEndPointsOfConnectors(steps);
 
 			String connectorName = pipeline.get("name").getAsString().toString();
-			
+
 			connectorName = PipelineUtil.removePrefixOfConnectorName(connectorName);
 
 			Connector connector = new Connector(connectorName, endpoints);
@@ -65,17 +64,17 @@ public class ConnectorService {
 		}
 
 	}
-	
+
 	/**
 	 * 
 	 * @return String path em que os arquivos foram salvos
 	 */
 	public String getPathSavedFiles() {
 		var response = GenerateConnectorFile.getOutputPathUsed();
-		
+
 		return response;
 	}
-	
+
 	/**
 	 * 
 	 * @param inputData
@@ -85,32 +84,26 @@ public class ConnectorService {
 		List<JsonObject> pipelineList = JsonUtil.getJsonPipelinesList(inputData.getOriginDirectoryPathFiles());
 
 		List<Connector> connectorList = new ArrayList<>();
-		
+
 		boolean addEmptyConnectorsInList = false;
-		
-		if(inputData.isGroupByConnectorName()) {
+
+		if (inputData.isGroupByConnectorName()) {
 			addEmptyConnectorsInList = inputData.isAddEmptyConnectors();
 		}
 		connectorList = this.pipeListToConnectorList(pipelineList, addEmptyConnectorsInList);
 
 		String connectorsName = PipelineUtil.getConnectorsName(inputData.getOriginDirectoryPathFiles());
-		
-		var ordenedList = this.moveEmptyListsForEnd(connectorList);
 
-		ConnectorList connectors = new ConnectorList(connectorsName, ordenedList);
+//		var ordenedList = this.moveEmptyListsForEnd(connectorList);
 
-		this.generateFiles(
-				connectors, 
-				inputData.isGenerateJsonFile(), 
-				inputData.isGenerateCsvFile(),
-				inputData.isGenerateExcelFile(),
-				inputData.getOutputPathFiles(),
-				inputData.isGroupByConnectorName(), 
+		ConnectorList connectors = new ConnectorList(connectorsName, connectorList);
+
+		this.generateFiles(connectors, inputData.isGenerateJsonFile(), inputData.isGenerateCsvFile(),
+				inputData.isGenerateExcelFile(), inputData.getOutputPathFiles(), inputData.isGroupByConnectorName(),
 				inputData.getFileName());
 
 		return connectors;
 	}
-
 
 	private List<Connector> pipeListToConnectorList(List<JsonObject> pipelineList, boolean addEmptyRequestList) {
 		if (addEmptyRequestList) {
@@ -164,7 +157,7 @@ public class ConnectorService {
 
 		return responseList;
 	}
-	
+
 	/**
 	 * 
 	 * @param connectorList
@@ -175,22 +168,18 @@ public class ConnectorService {
 	 * @param groupByconnectorsName
 	 * @param filename
 	 */
-	private void generateFiles(ConnectorList connectorList, boolean generateJsonFile, boolean generateCsvFile, boolean generateExcelFile,
-			String outputPathFile, boolean groupByconnectorsName,
-			String filename) {
+	private void generateFiles(ConnectorList connectorList, boolean generateJsonFile, boolean generateCsvFile,
+			boolean generateExcelFile, String outputPathFile, boolean groupByconnectorsName, String filename) {
 
-		GenerateConnectorEvent event = new GenerateConnectorEvent(
-				connectorList, 
-				generateJsonFile, 
-				generateCsvFile, 
+		GenerateConnectorEvent event = new GenerateConnectorEvent(connectorList, generateJsonFile, generateCsvFile,
 				generateExcelFile);
-		
+
 		event.setGroupByConnectorsName(groupByconnectorsName);
-		
+
 		if (outputPathFile != null) {
 			event.setOutputPathFile(outputPathFile);
 		}
-		
+
 		if (filename != null) {
 			event.setFileName(filename);
 		}

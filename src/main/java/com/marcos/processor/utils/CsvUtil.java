@@ -120,7 +120,7 @@ public class CsvUtil {
 
 			cw.writeAll(data);
 			
-			System.out.println("Arquivo CSV gerado com sucesso em: " + file.getAbsolutePath());
+			System.err.println("\nArquivo CSV gerado com sucesso em: " + file.getAbsolutePath() + "\n");
 			
 			cw.close();
 			fw.close();

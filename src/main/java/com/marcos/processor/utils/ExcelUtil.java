@@ -60,7 +60,7 @@ public class ExcelUtil {
 		// Chamada do método para criar e gravar o arquivo Excel
 		try {
 
-			return ExcelUtil.generateExcelFile(headers, data, pathDirectory, filename);
+			return ExcelUtil.generateExcelFile(headers, data, pathDirectory, filename, connectorList.getTitle());
 
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
@@ -76,26 +76,16 @@ public class ExcelUtil {
 
 		List<String[]> dataList = new ArrayList<>();
 
+		String[] firstLine = { HEADERS_GROUP_BY_CONNECTORS_NAME[0], HEADERS_GROUP_BY_CONNECTORS_NAME[1],
+				HEADERS_GROUP_BY_CONNECTORS_NAME[2] };
+		dataList.add(firstLine);
+
 		for (int i = 0; i < connectorList.getConnectors().size(); i++) {
 			String[] line = new String[columns];
 
 			var connectorName = "";
 			var httpMethod = "";
 			var endpoint = "";
-
-			if (i == 0) {
-				connectorName = HEADERS_GROUP_BY_CONNECTORS_NAME[0];
-				httpMethod = HEADERS_GROUP_BY_CONNECTORS_NAME[1];
-				endpoint = HEADERS_GROUP_BY_CONNECTORS_NAME[2];
-
-				line[0] = connectorName;
-				line[1] = httpMethod;
-				line[2] = endpoint;
-
-				dataList.add(line);
-
-				continue;
-			}
 
 			connectorName = connectorList.getConnectors().get(i).getName();
 
@@ -202,8 +192,8 @@ public class ExcelUtil {
 		return data;
 	}
 
-	public static String generateExcelFile(String[] headers, String[][] data, String pathDirectory, String fileName)
-			throws IOException {
+	private static String generateExcelFile(String[] headers, String[][] data, String pathDirectory, String fileName,
+			String sheetName) throws IOException {
 
 		// Criando um diretório se não existir
 		File directory = new File(pathDirectory);
@@ -224,7 +214,7 @@ public class ExcelUtil {
 		CellStyle stripeStyle = createStripeStyle(workbook);
 
 		// Criando uma nova planilha (sheet)
-		Sheet sheet = workbook.createSheet("Planilha1");
+		Sheet sheet = workbook.createSheet(sheetName);
 
 		// Criando uma linha na planilha para o cabeçalho
 		Row headerRow = sheet.createRow(0);
@@ -252,7 +242,7 @@ public class ExcelUtil {
 
 					if (data[i].length == 3) {
 						if (j == 1) {
-							cell.setCellStyle(createColumnMethodStyle( workbook, data[i][j]));
+							cell.setCellStyle(createColumnMethodStyle(workbook, data[i][j]));
 						}
 					}
 
@@ -266,11 +256,12 @@ public class ExcelUtil {
 
 			}
 		}
-		
-		// Mescla da primeira célula até a última do cabeçalho
-		sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, headers.length - 1)); 
 
-		// Ajustando a largura das colunas para que o conteúdo seja exibido adequadamente
+		// Mescla da primeira célula até a última do cabeçalho
+		sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, headers.length - 1));
+
+		// Ajustando a largura das colunas para que o conteúdo seja exibido
+		// adequadamente
 		for (int i = 0; i < headers.length; i++) {
 			sheet.autoSizeColumn(i);
 		}
@@ -279,7 +270,7 @@ public class ExcelUtil {
 		File file = new File(directory, fileName + ".xlsx");
 		try (FileOutputStream fileOut = new FileOutputStream(file)) {
 			workbook.write(fileOut);
-			System.out.println("Arquivo Excel gerado com sucesso em: " + file.getAbsolutePath());
+			System.err.println("\nArquivo Excel gerado com sucesso em: " + file.getAbsolutePath() + "\n");
 		}
 
 		// Fechando o workbook
@@ -321,22 +312,21 @@ public class ExcelUtil {
 		columnMethodStyle.setBorderBottom(BorderStyle.THIN);
 		columnMethodStyle.setBorderLeft(BorderStyle.THIN);
 		columnMethodStyle.setBorderRight(BorderStyle.THIN);
-		
+
 		Font font = workbook.createFont();
-		
-		
-		if(method.equals("POST")) {
+
+		if (method.equals("POST")) {
 			font.setColor(IndexedColors.DARK_TEAL.getIndex());
 			font.setBold(true);
 			columnMethodStyle.setFont(font);
 		}
-		
-		if(method.equals("GET")) {
+
+		if (method.equals("GET")) {
 			font.setColor(IndexedColors.GREEN.getIndex());
 			font.setBold(true);
 			columnMethodStyle.setFont(font);
 		}
-		
+
 		return columnMethodStyle;
 	}
 
@@ -353,20 +343,44 @@ public class ExcelUtil {
 		return stripeStyle;
 	}
 
+	/**
+	 * 
+	 * @param data {@link String[][]}
+	 */
 	public static void printData(String[][] data) {
+		System.out.println("-----");
+
 		System.out.println("\n\nPRINTANDO DADOS\n\n");
 		for (int i = 0; i < data.length; i++) {
 
 			for (int j = 0; j < data[i].length; j++) {
 
 				if (j == (data[i].length - 1)) {
-					System.out.println(data[i][j]);
+					var value = data[i][j];
+					System.out.println(value);
 					continue;
 				}
-				System.out.print(data[i][j] + " | ");
+				var value = data[i][j];
+				System.out.print(value + " | ");
 
 			}
 		}
 		System.out.println("\n\nTERMINANDO DE PRINTAR DADOS\n\n");
+	}
+
+	/**
+	 * 
+	 * @param data {@link List:String[]}
+	 */
+	public static void printData(List<String[]> data) {
+		System.out.println("-----");
+
+		System.out.println("\n\nPRINTANDO DADOS DA LISTA\n\n");
+
+		data.forEach(x -> {
+			System.out.print(x[0] + " | " + x[1] + " | " + x[2] + " | \n");
+		});
+
+		System.out.println("\n\nTERMINANDO DE PRINTAR DADOS DA LISTA\n\n");
 	}
 }
