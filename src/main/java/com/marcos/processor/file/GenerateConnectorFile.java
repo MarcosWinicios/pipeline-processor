@@ -2,15 +2,20 @@ package com.marcos.processor.file;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.marcos.processor.model.Connector;
 import com.marcos.processor.model.ConnectorList;
 import com.marcos.processor.utils.CsvUtil;
 import com.marcos.processor.utils.ExcelUtil;
 import com.marcos.processor.utils.JsonUtil;
 
+import lombok.NoArgsConstructor;
+
 @Component
+@NoArgsConstructor
 public class GenerateConnectorFile {
 	
 	private static final String DEFAULT_FOLDER_OUTPUT_JSON = "json/";
@@ -156,10 +161,28 @@ public class GenerateConnectorFile {
 	 */
 	public void generateExcelFile(ConnectorList connectorList, String pathDirectory, boolean generateConnectorNameColumn, String fileName) {
 		
+//		printData(connectorList.getConnectors());
+		
 		var path = ExcelUtil.connectorListToExcel(connectorList, this.buildPath(pathDirectory) + DEFAULT_FOLDER_OUTPUT_EXCEL, generateConnectorNameColumn, fileName);
 		
 		setOutputPathUsed(path);
 	}
+	
+	
+	private void printData(List<Connector> connectorList) {
+		System.err.println("\n\n@@@ **Printando dados  @@@");
+		connectorList.forEach(x -> {
+			if(x.getName().contains("ACCOUNT-LIST")) {
+				System.err.println(x.getName());
+			}else {
+				System.out.println(x.getName());
+			}
+		});
+		
+		System.err.println("@@@ Terminando de printar dados  @@@\n\n");
+	}
+	
+	
 
 	public static String getOutputPathUsed() {
 		return outputPathUsed;
@@ -173,6 +196,15 @@ public class GenerateConnectorFile {
 		String path = pathObject.getParent().getParent().toString();
 		
 		GenerateConnectorFile.outputPathUsed = path;
+	}
+	
+	/**
+	 * 
+	 * @param referenceConnectorList
+	 * @param reviewConnectorList
+	 */
+	public void generateComparosonExcelFile(ConnectorList referenceConnectorList, ConnectorList reviewConnectorList) {
+		ExcelUtil.comparisonConnectorList(referenceConnectorList, reviewConnectorList);
 	}
 
 }

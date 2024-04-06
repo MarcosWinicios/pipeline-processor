@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.marcos.processor.dto.input.GenerateComparisonConnectorInputDTO;
 import com.marcos.processor.dto.input.GenerateConnectorListInputDTO;
 import com.marcos.processor.event.GenerateConnectorEvent;
 import com.marcos.processor.file.GenerateConnectorFile;
@@ -24,6 +25,13 @@ public class ConnectorService {
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private GenerateConnectorFile generatorConnectorFile;
+
+	public ConnectorService() {
+		this.generatorConnectorFile = new GenerateConnectorFile();
+	}
 
 	public Connector extractConnectorOfFile(String path) {
 		try {
@@ -75,6 +83,30 @@ public class ConnectorService {
 		return response;
 	}
 
+	public void connectorComparison(GenerateComparisonConnectorInputDTO inputData) {
+		ConnectorList referenceConnector = this.getConnectorListOfPath(inputData.getReferenceConnector());
+		System.out.println("referenceConnector: " + referenceConnector);
+
+		ConnectorList reviewConnector = this.getConnectorListOfPath(inputData.getReviewConnector());
+		System.out.println("reviewConnector: " + reviewConnector);
+
+		this.generatorConnectorFile.generateComparosonExcelFile(referenceConnector, reviewConnector);
+	}
+
+	private ConnectorList getConnectorListOfPath(String path) {
+		List<JsonObject> pipelineJson = JsonUtil.getJsonPipelinesList(path);
+
+		List<Connector> connectorList = new ArrayList<>();
+
+		connectorList = this.pipeListToConnectorList(pipelineJson, true);
+
+		String connectorsName = PipelineUtil.getConnectorsName(path);
+
+		ConnectorList response = new ConnectorList(connectorsName, connectorList);
+
+		return response;
+	}
+
 	/**
 	 * 
 	 * @param inputData
@@ -91,18 +123,39 @@ public class ConnectorService {
 			addEmptyConnectorsInList = inputData.isAddEmptyConnectors();
 		}
 		connectorList = this.pipeListToConnectorList(pipelineList, addEmptyConnectorsInList);
+		
+//		this.printData(connectorList);
 
 		String connectorsName = PipelineUtil.getConnectorsName(inputData.getOriginDirectoryPathFiles());
 
 //		var ordenedList = this.moveEmptyListsForEnd(connectorList);
 
 		ConnectorList connectors = new ConnectorList(connectorsName, connectorList);
-
+		
+//		printData(connectors);
+		
 		this.generateFiles(connectors, inputData.isGenerateJsonFile(), inputData.isGenerateCsvFile(),
 				inputData.isGenerateExcelFile(), inputData.getOutputPathFiles(), inputData.isGroupByConnectorName(),
 				inputData.getFileName());
 
 		return connectors;
+	}
+	
+	private void printData(List<Connector> connectorList) {
+		System.err.println("\n\n@@@ Printando dados  @@@");
+		connectorList.forEach(x -> {
+			if(x.getName().contains("ACCOUNT-LIST")) {
+				System.err.println(x.getName());
+			}else {
+				System.out.println(x.getName());
+			}
+		});
+		
+		System.err.println("@@@ Terminando de printar dados  @@@\n\n");
+	}
+	
+	private void printData(ConnectorList connector) {
+		this.printData(connector.getConnectors());
 	}
 
 	private List<Connector> pipeListToConnectorList(List<JsonObject> pipelineList, boolean addEmptyRequestList) {
@@ -133,7 +186,13 @@ public class ConnectorService {
 
 		for (JsonObject pipeline : pipelineList) {
 			Connector connector = this.extractConnectorOfJsonPipeline(pipeline);
-
+			/*
+			if (connector.getName().contains("ACCOUNT-LIST")) {
+				System.err.println(connector.getName());
+			} else {
+				System.out.println(connector.getName());
+			}
+			*/
 			connectorList.add(connector);
 		}
 		return connectorList;
@@ -183,12 +242,18 @@ public class ConnectorService {
 		if (filename != null) {
 			event.setFileName(filename);
 		}
-
-		GenerateConnectorListener listener = new GenerateConnectorListener();
-		listener.generateConnectorJsonFileListener(event);
-		listener.generateConnectorCsvFileListener(event);
-		listener.generateConnectorExcelFileListener(event);
-
-//		eventPublisher.publishEvent(event);
+//
+//		GenerateConnectorListener listener = new GenerateConnectorListener();
+//		listener.generateConnectorJsonFileListener(event);
+//		listener.generateConnectorCsvFileListener(event);
+//		listener.generateConnectorExcelFileListener(event);
+		
+		/*System.err.println("\n\n+____________________+\n\n");
+		System.err.println("PRINTANDO EVENTO\n\n");
+		printData(event.getConnectorList());
+		System.err.println("TERMINANDO PRINT DO EVENTO\n\n");
+		System.err.println("\n\n+____________________+\n\n");*/
+		
+		eventPublisher.publishEvent(event);
 	}
 }

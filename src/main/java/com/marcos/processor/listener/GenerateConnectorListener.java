@@ -87,33 +87,33 @@ public class GenerateConnectorListener {
 		}
 	
 		//path e filename padrões
-				if(event.getOutputPathFile() == null && event.getFileName() == null) {
-					generatorConnectorFile.generateExcelFile(
-							event.getConnectorList(), 
-							event.isGroupByConnectorsName());
-					return;
-				}
-				
-				//filename padrão
-				if(event.getOutputPathFile() != null && event.getFileName() == null) {
-					generatorConnectorFile.generateExcelFile(
-							event.getConnectorList(), 
-							event.getOutputPathFile(), 
-							event.isGroupByConnectorsName());
-					return;
-				}
-				
-				//path padrão 
-				if(event.getOutputPathFile() == null && event.getFileName() != null) {
-					
-					generatorConnectorFile.generateExcelFile(
-							event.getConnectorList(), 
-							event.isGroupByConnectorsName(),
-							event.getFileName()
-							);
-					return;
-				}
+		if(event.getOutputPathFile() == null && event.getFileName() == null) {
+			generatorConnectorFile.generateExcelFile(
+					event.getConnectorList(), 
+					event.isGroupByConnectorsName());
+			return;
+		}
 		
+		//filename padrão
+		if(event.getOutputPathFile() != null && event.getFileName() == null) {
+			generatorConnectorFile.generateExcelFile(
+					event.getConnectorList(), 
+					event.getOutputPathFile(), 
+					event.isGroupByConnectorsName());
+			return;
+		}
+		
+		//path padrão 
+		if(event.getOutputPathFile() == null && event.getFileName() != null) {
+			
+			generatorConnectorFile.generateExcelFile(
+					event.getConnectorList(), 
+					event.isGroupByConnectorsName(),
+					event.getFileName()
+					);
+			return;
+		}
+
 		
 		//path e fileName customizados
 		this.generatorConnectorFile.generateExcelFile(
