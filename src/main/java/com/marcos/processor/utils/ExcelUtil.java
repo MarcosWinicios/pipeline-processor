@@ -40,8 +40,22 @@ public class ExcelUtil {
 
 		String[] headers = null;
 		String[][] data = null;
-
+		
+		System.err.println("\n\n+*+*+ connectorListToExcel *+*+*+*+*\n\n");
+		var indexAccount = connectorList.getConnectors().indexOf("ACCOUNT-LIST");
+		System.out.println("indexAccount: " + indexAccount);
+		
+		connectorList.getConnectors().forEach(x -> {
+//			System.err.println("\nXXXXXXXXX\n");
+			if(x.getName().contains("ACCOUNT-LIST")) {
+				System.err.println(x.getName() + " <<<");
+			}else {
+				System.out.println(">>> " + x.getName());
+			}
+		});
+		System.err.println("\n\n+*+*+*+*+*+*+*\n\n");
 		if (groupByConnectorsName) {
+			System.out.println("AAAAAAAAAA");
 			headers = new String[3];
 
 			headers[0] = connectorList.getTitle().toUpperCase();
@@ -56,7 +70,9 @@ public class ExcelUtil {
 
 			data = generateDateWithoutGroupingByConnectorName(connectorList);
 		}
-
+		
+//		printData(data);
+		
 		// Chamada do método para criar e gravar o arquivo Excel
 		try {
 
@@ -67,9 +83,21 @@ public class ExcelUtil {
 		}
 
 	}
+	
+	public static void comparisonConnectorList(ConnectorList referenceConnectorList, ConnectorList reviewConnectorList) {
+		String[][] referenceData = generateDateWithGroupingByConnectorName(referenceConnectorList);
+		String[][] reviewData = generateDateWithGroupingByConnectorName(referenceConnectorList);
+		
+		printData(referenceData);
+		printData(reviewData);
+		
+	}
+	
+	
 
 	private static String[][] generateDateWithGroupingByConnectorName(ConnectorList connectorList) {
-
+//		System.out.println("\n &&");
+		
 		int columns = HEADERS_GROUP_BY_CONNECTORS_NAME.length;
 
 		String[][] data = null;
@@ -79,7 +107,24 @@ public class ExcelUtil {
 		String[] firstLine = { HEADERS_GROUP_BY_CONNECTORS_NAME[0], HEADERS_GROUP_BY_CONNECTORS_NAME[1],
 				HEADERS_GROUP_BY_CONNECTORS_NAME[2] };
 		dataList.add(firstLine);
-
+		
+		var indexAccount = connectorList.getConnectors().indexOf("ACCOUNT-LIST");
+		System.out.println("indexAccount: " + indexAccount);
+		
+//		System.out.println(connectorList.getConnectors().get(-1));
+		
+		connectorList.getConnectors().forEach(x -> {
+			if(x.getName().contains("ACCOUNT-LIST")) {
+				System.err.println("***> " + x.getName());
+				System.err.println();
+			}else {
+				
+				System.out.println("***> " + x.getName());
+			}
+			
+		});
+//		System.out.println(connectorList.getConnectors().get(0).getName());
+		System.out.println("\n &&");
 		for (int i = 0; i < connectorList.getConnectors().size(); i++) {
 			String[] line = new String[columns];
 
@@ -88,7 +133,14 @@ public class ExcelUtil {
 			var endpoint = "";
 
 			connectorName = connectorList.getConnectors().get(i).getName();
-
+			
+			System.out.print("\n" + i);
+			if(connectorName.contains("ACCOUNT-LIST")) {
+				System.err.println(connectorName + " <-");
+			}else {
+				System.out.println("-> " + connectorName);
+			}
+			
 			var size = connectorList.getConnectors().get(i).getRequestList().size();
 
 			if (size > 0) {
@@ -114,7 +166,7 @@ public class ExcelUtil {
 			line[2] = endpoint;
 			dataList.add(line);
 		}
-
+//		printData(dataList);
 		data = listToArray(dataList);
 
 		return data;
@@ -348,7 +400,7 @@ public class ExcelUtil {
 	 * @param data {@link String[][]}
 	 */
 	public static void printData(String[][] data) {
-		System.out.println("-----");
+		System.err.println("-----");
 
 		System.out.println("\n\nPRINTANDO DADOS\n\n");
 		for (int i = 0; i < data.length; i++) {
@@ -373,7 +425,7 @@ public class ExcelUtil {
 	 * @param data {@link List:String[]}
 	 */
 	public static void printData(List<String[]> data) {
-		System.out.println("-----");
+		System.err.println("LIST-----");
 
 		System.out.println("\n\nPRINTANDO DADOS DA LISTA\n\n");
 
@@ -383,4 +435,6 @@ public class ExcelUtil {
 
 		System.out.println("\n\nTERMINANDO DE PRINTAR DADOS DA LISTA\n\n");
 	}
+
+
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.marcos.processor.dto.input.GenerateComparisonConnectorInputDTO;
 import com.marcos.processor.dto.input.GenerateConnectorListInputDTO;
 import com.marcos.processor.model.ConnectorList;
 import com.marcos.processor.service.ConnectorService;
@@ -29,5 +30,10 @@ public class ConnectorController {
 		
 		return ResponseEntity.ok(response);
 		
+	}
+	
+	@PostMapping("/comparison")
+	public void comparisonConnectors(@RequestBody GenerateComparisonConnectorInputDTO inputData) {
+		this.service.connectorComparison(inputData);
 	}
 }
