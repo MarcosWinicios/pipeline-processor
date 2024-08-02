@@ -41,19 +41,19 @@ public class ExcelUtil {
 		String[] headers = null;
 		String[][] data = null;
 		
-		System.err.println("\n\n+*+*+ connectorListToExcel *+*+*+*+*\n\n");
-		var indexAccount = connectorList.getConnectors().indexOf("ACCOUNT-LIST");
-		System.out.println("indexAccount: " + indexAccount);
-		
-		connectorList.getConnectors().forEach(x -> {
-//			System.err.println("\nXXXXXXXXX\n");
-			if(x.getName().contains("ACCOUNT-LIST")) {
-				System.err.println(x.getName() + " <<<");
-			}else {
-				System.out.println(">>> " + x.getName());
-			}
-		});
-		System.err.println("\n\n+*+*+*+*+*+*+*\n\n");
+//		System.err.println("\n\n+*+*+ connectorListToExcel *+*+*+*+*\n\n");
+//		var indexAccount = connectorList.getConnectors().indexOf("ACCOUNT-LIST");
+//		System.out.println("indexAccount: " + indexAccount);
+//
+//		connectorList.getConnectors().forEach(x -> {
+////			System.err.println("\nXXXXXXXXX\n");
+//			if(x.getName().contains("ACCOUNT-LIST")) {
+//				System.err.println(x.getName() + " <<<");
+//			}else {
+//				System.out.println(">>> " + x.getName());
+//			}
+//		});
+//		System.err.println("\n\n+*+*+*+*+*+*+*\n\n");
 		if (groupByConnectorsName) {
 			System.out.println("AAAAAAAAAA");
 			headers = new String[3];
