@@ -1,22 +1,21 @@
 package com.marcos.processor.utils;
 
+import com.marcos.processor.model.Connector;
+import com.marcos.processor.model.ConnectorList;
+import com.marcos.processor.model.RequestAPI;
+import com.opencsv.CSVWriter;
+import org.springframework.stereotype.Component;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.stereotype.Component;
-
-import com.marcos.processor.model.Connector;
-import com.marcos.processor.model.ConnectorList;
-import com.marcos.processor.model.RequestAPI;
-import com.opencsv.CSVWriter;
-
 @Component
 public class CsvUtil {
 
 	/**
-	 * 
+	 *
 	 * @param connectors                Objeto {@link ConnectorList} que representa
 	 *                                  uma lista de connectores
 	 * @param directoryTargetPath       Diretório alvo onde o arquivo será salvo
@@ -45,21 +44,31 @@ public class CsvUtil {
 		String[] headers = { "method".toUpperCase(), "endpoint".toUpperCase() };
 		data.add(headers);
 
-		for (Connector connector : connectorList.getConnectors()) {
+		List<RequestAPI> requestApiList = connectorList.extractNoDuplicateRequestAPIList();
 
-			if (connector.getRequestList().size() == 0) {
-				continue;
-			}
-			RequestAPI api = connector.getRequestList().get(0);
-			String endPointMethod = api.getHttpMethod();
-			String endpointValue = api.getEndpoint();
+		var lines =  requestApiList.stream()
+				.map(x -> new String[]{x.getHttpMethod(), x.getEndpoint()})
+				.toList();
 
-			String[] item = { endPointMethod, endpointValue };
-			data.add(item);
+		data.addAll(lines);
 
-		}
-
-		return data;
+		return  data;
+//
+//		for (Connector connector : connectorList.getConnectors()) {
+//
+//			if (connector.getRequestList().isEmpty()) {
+//				continue;
+//			}
+//			RequestAPI api = connector.getRequestList().get(0);
+//			String endPointMethod = api.getHttpMethod();
+//			String endpointValue = api.getEndpoint();
+//
+//			String[] item = { endPointMethod, endpointValue };
+//			data.add(item);
+//
+//		}
+//
+//		return data;
 	}
 
 	private static List<String[]> generateConnectorCsvDataWithName(ConnectorList connectorList) {
@@ -94,7 +103,7 @@ public class CsvUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param data          Informações que irão compor o conteúdo do arquivo CSV
 	 * @param directoryPath Diretório alvo onde o arquivo será salvo
 	 * @param fileName      Nome do arquivo a ser gerado
@@ -119,9 +128,9 @@ public class CsvUtil {
 			CSVWriter cw = new CSVWriter(fw);
 
 			cw.writeAll(data);
-			
+
 			System.err.println("\nArquivo CSV gerado com sucesso em: " + file.getAbsolutePath() + "\n");
-			
+
 			cw.close();
 			fw.close();
 			return file.getAbsolutePath();
